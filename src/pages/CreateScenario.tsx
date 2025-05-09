@@ -1,0 +1,1047 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
+import { useScenario } from '@/context/ScenarioContext';
+import { Human, Animal, ScenarioResult, AIResponse, Scenario } from '@/types';
+import ScenarioPreview from '@/components/ScenarioPreview';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+  Car, 
+  User, 
+  Dog, 
+  Plus, 
+  Minus, 
+  AlertTriangle, 
+  Brain, 
+  Sparkles, 
+  ArrowRight, 
+  Check, 
+  ChevronLeft, 
+  Info, 
+  FileText, 
+  HelpCircle
+} from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
+
+// --- Types for Props ---
+type HumanConfigProps = {
+  index: number;
+  human: Human; // Pass individual human object
+  updateHuman: (index: number, field: keyof Human, value: any) => void;
+  showTooltip: string | null;
+  setShowTooltip: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+type AnimalConfigProps = {
+  index: number;
+  animal: Animal; // Pass individual animal object
+  updateAnimal: (index: number, field: keyof Animal, value: any) => void;
+}
+
+// --- Human Config Component ---
+const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setShowTooltip }: HumanConfigProps) => {
+  console.log(`Rendering HumanConfig for index ${index}, ID: ${human?.id}`);
+
+  if (!human) return null;
+
+  return (
+    <div className="space-y-5 animate-fade-in" style={{animationDelay: `${index * 100}ms`}}>
+      <div className="flex items-center justify-between">
+        <h4 className="text-lg font-medium flex items-center gap-2">
+          <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-sm font-bold ${human.relationship === 'inside' ? 'bg-blue-600' : 'bg-green-600'}`}>
+            {index + 1}
+          </div>
+          Human {index + 1}
+        </h4>
+      </div>
+
+      <div className="space-y-5">
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+          <Label className="text-base mb-3 block">Relationship to Vehicle</Label>
+          <RadioGroup
+            value={human.relationship}
+            onValueChange={(value: "inside" | "outside") => updateHuman(index, 'relationship', value)}
+            className="flex gap-6 mt-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="inside" id={`inside-${index}`} />
+              <Label htmlFor={`inside-${index}`} className="cursor-pointer flex items-center gap-1.5">
+                <Car size={16} className="text-blue-600" />
+                Inside the car
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="outside" id={`outside-${index}`} />
+              <Label htmlFor={`outside-${index}`} className="cursor-pointer flex items-center gap-1.5">
+                <User size={16} className="text-green-600" />
+                Outside the car
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <Label className="mb-1.5 block">Age Group</Label>
+            <Select 
+              value={human.age} 
+              onValueChange={(value: "child" | "adult" | "elderly" | "undefined") => updateHuman(index, 'age', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select age group" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="child">Child</SelectItem>
+                <SelectItem value="adult">Adult</SelectItem>
+                <SelectItem value="elderly">Elderly</SelectItem>
+                <SelectItem value="undefined">undefined</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="mb-1.5 block">Gender</Label>
+            <Select 
+              value={human.gender} 
+              onValueChange={(value: "male" | "female" | "undefined") => updateHuman(index, 'gender', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="undefined">undefined</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div>
+          <Label className="mb-1.5 block">Fitness Level</Label>
+          <Select 
+            value={human.fitness}
+            onValueChange={(value: "obese and ugly" | "fit and beautiful" | "undefined") => updateHuman(index, 'fitness', value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select fitness level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fit and beautiful">Fit and beautiful</SelectItem>
+              <SelectItem value="obese and ugly">Obese and ugly</SelectItem>
+              <SelectItem value="undefined">undefined</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <Label className="mb-1.5 block">
+              Social Value
+              <span 
+                className="ml-1 inline-block cursor-help text-gray-500"
+                onMouseEnter={() => setShowTooltip('social')}
+                onMouseLeave={() => setShowTooltip(null)}
+              >
+                <HelpCircle size={14} />
+                {showTooltip === 'social' && (
+                  <div className="absolute z-50 p-2 bg-black text-white text-xs rounded shadow-lg max-w-xs">
+                    How society might perceive this individual's contribution
+                  </div>
+                )}
+              </span>
+            </Label>
+            <Select 
+              value={human.socialValue} 
+              onValueChange={(value: "productive" | "homeless" | "undefined") => updateHuman(index, 'socialValue', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select social value" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="productive">Productive member of society</SelectItem>
+                <SelectItem value="homeless">Homeless</SelectItem>
+                <SelectItem value="undefined">undefined</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="mb-1.5 block">Legal Status</Label>
+            <Select 
+              value={human.legalStatus} 
+              onValueChange={(value: "law-abiding" | "criminal" | "undefined") => updateHuman(index, 'legalStatus', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select legal status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="law-abiding">Law-abiding</SelectItem>
+                <SelectItem value="criminal">Criminal</SelectItem>
+                <SelectItem value="undefined">undefined</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div>
+          <Label className="mb-1.5 block">Additional Details</Label>
+          <Textarea 
+            placeholder="Any specific characteristics about this person..."
+            value={human.details || ''}
+            onChange={(e) => updateHuman(index, 'details', e.target.value)}
+            className="resize-none min-h-[80px]"
+          />
+        </div>
+      </div>
+    </div>
+  );
+});
+HumanConfig.displayName = 'HumanConfig';
+// --- End Human Config Component ---
+
+
+// --- Animal Config Component ---
+const AnimalConfig = React.memo(({ index, animal, updateAnimal }: AnimalConfigProps) => {
+  console.log(`Rendering AnimalConfig for index ${index}, ID: ${animal?.id}`);
+
+  if (!animal) return null;
+
+  return (
+    <div className="space-y-5 animate-fade-in" style={{animationDelay: `${index * 100}ms`}}>
+      <div className="flex items-center justify-between">
+        <h4 className="text-lg font-medium flex items-center gap-2">
+          <div className="flex items-center justify-center h-7 w-7 rounded-full bg-yellow-500 text-white text-sm font-bold">
+            {index + 1}
+          </div>
+          Animal {index + 1}
+        </h4>
+      </div>
+
+      <div className="space-y-5">
+        <div>
+          <Label className="mb-1.5 block">Species</Label>
+          <Select 
+            value={animal.species} 
+            onValueChange={(value: string) => updateAnimal(index, 'species', value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select species" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cat">Cat</SelectItem>
+              <SelectItem value="dog">Dog</SelectItem>
+              <SelectItem value="dolphin">Dolphin</SelectItem>
+              <SelectItem value="panda">Panda</SelectItem>
+              <SelectItem value="elephant">Elephant</SelectItem>
+              <SelectItem value="deer">Deer</SelectItem>
+              <SelectItem value="bird">Bird/Sparrow</SelectItem>
+              <SelectItem value="mosquito">Mosquito</SelectItem>
+              <SelectItem value="rat">Rat</SelectItem>
+              <SelectItem value="cockroach">Cockroach</SelectItem>
+              <SelectItem value="wasp">Wasp</SelectItem>
+              <SelectItem value="tick">Tick</SelectItem>
+              <SelectItem value="snake">Snake</SelectItem>
+              <SelectItem value="fish">Fish</SelectItem>
+              <SelectItem value="sheep">Sheep</SelectItem>
+              <SelectItem value="duck">Duck</SelectItem>
+              <SelectItem value="frog">Frog</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="mb-1.5 block">Additional Details</Label>
+          <Textarea 
+            placeholder="Any specific characteristics about this animal..."
+            value={animal.details || ''}
+            onChange={(e) => updateAnimal(index, 'details', e.target.value)}
+            className="resize-none min-h-[80px]"
+          />
+        </div>
+      </div>
+    </div>
+  );
+});
+AnimalConfig.displayName = 'AnimalConfig';
+// --- End Animal Config Component ---
+
+const CreateScenario = () => {
+  const navigate = useNavigate();
+  const { addScenario, addResult } = useScenario();
+
+  // Step management
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 3;
+
+  // Loading state for submission
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Basic scenario context
+  const [showTooltip, setShowTooltip] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
+
+  // Human configuration
+  const [humanCount, setHumanCount] = useState(1);
+  const [sameHumanCharacteristics, setSameHumanCharacteristics] = useState(true);
+  const [humans, setHumans] = useState<Human[]>([
+    {
+      id: uuidv4(),
+      relationship: 'inside',
+      age: 'undefined',
+      gender: 'undefined',
+      fitness: 'undefined',
+      socialValue: 'undefined',
+      legalStatus: 'undefined',
+      details: '',
+    },
+  ]);
+
+  // Animal configuration
+  const [includeAnimals, setIncludeAnimals] = useState(false);
+  const [animalCount, setAnimalCount] = useState(1);
+  const [sameAnimalSpecies, setSameAnimalSpecies] = useState(true);
+  const [animals, setAnimals] = useState<Animal[]>([
+    {
+      id: uuidv4(),
+      species: 'dog',
+      details: '',
+    },
+  ]);
+
+  // Auto-save to local storage
+  useEffect(() => {
+    // Save current state to localStorage
+    const saveState = () => {
+      const state = {
+        currentStep,
+        humanCount,
+        sameHumanCharacteristics,
+        humans,
+        includeAnimals,
+        animalCount, 
+        sameAnimalSpecies,
+        animals
+      };
+      
+      localStorage.setItem('scenarioState', JSON.stringify(state));
+    };
+    
+    saveState();
+  }, [
+    currentStep,
+    humanCount, 
+    sameHumanCharacteristics, 
+    humans, 
+    includeAnimals, 
+    animalCount, 
+    sameAnimalSpecies, 
+    animals
+  ]);
+
+  // Try to load saved state on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('scenarioState');
+    
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        
+        if (state && typeof state.currentStep === 'number') {
+          setCurrentStep(state.currentStep || 1);
+          setHumanCount(state.humanCount !== undefined ? state.humanCount : 1);
+          setSameHumanCharacteristics(state.sameHumanCharacteristics !== undefined ? state.sameHumanCharacteristics : true);
+          setHumans(state.humans && state.humans.length > 0 ? state.humans : [
+            {
+              id: uuidv4(),
+              relationship: 'inside',
+              age: 'adult',
+              gender: 'male',
+              fitness: 'fit and beautiful',
+              socialValue: 'neutral',
+              legalStatus: 'law-abiding',
+              details: '',
+            },
+          ]);
+          setIncludeAnimals(state.includeAnimals || false);
+          setAnimalCount(state.animalCount || 1);
+          setSameAnimalSpecies(state.sameAnimalSpecies !== undefined ? state.sameAnimalSpecies : true);
+          setAnimals(state.animals || []);
+          
+          if (state.humans && state.humans.length > 0) {
+            toast.info("Your draft scenario has been restored", {
+              description: "You can continue where you left off",
+              action: {
+                label: "Clear",
+                onClick: () => {
+                  localStorage.removeItem('scenarioState');
+                  window.location.reload();
+                }
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error restoring scenario state", error);
+      }
+    }
+  }, []);
+
+  // Handle humans update
+  const updateHuman = (index: number, field: keyof Human, value: any) => {
+    const newHumans = [...humans];
+    if (!newHumans[index]) return;
+    newHumans[index] = {
+      ...newHumans[index],
+      [field]: value,
+    };
+
+    if (sameHumanCharacteristics) {
+      const sharedFields: (keyof Human)[] = ['age', 'gender', 'fitness', 'socialValue', 'legalStatus'];
+      if (sharedFields.includes(field)) { 
+        newHumans.forEach((h, i) => {
+          if (i !== index && newHumans[i]) {
+            newHumans[i] = {
+              ...newHumans[i],
+              [field]: value,
+            };
+          }
+        });
+      } 
+    }
+    setHumans(newHumans);
+  };
+
+  // Handle animals update
+  const updateAnimalCount = (count: number) => {
+    if (count < 1) count = 1;
+    if (count > 10) count = 10;
+    
+    setAnimalCount(count);
+    
+    if (count > animals.length) {
+      // Add more animals
+      const newAnimals = [...animals];
+      for (let i = animals.length; i < count; i++) {
+        newAnimals.push({
+          id: uuidv4(),
+          species: 'dog',
+          details: '',
+        });
+      }
+      setAnimals(newAnimals);
+      toast.info(`Added ${count - animals.length} new animal${count - animals.length > 1 ? 's' : ''}`);
+    } else if (count < animals.length) {
+      // Remove animals
+      setAnimals(animals.slice(0, count));
+      toast.info(`Removed ${animals.length - count} animal${animals.length - count > 1 ? 's' : ''}`);
+    }
+  };
+
+  // Handle animal characteristic update
+  const updateAnimal = (index: number, field: keyof Animal, value: any) => {
+    const newAnimals = [...animals];
+    if (!newAnimals[index]) return;
+    newAnimals[index] = {
+      ...newAnimals[index],
+      [field]: value,
+    };
+
+    if (sameAnimalSpecies && field === 'species') {
+      newAnimals.forEach((a, i) => {
+        if (i !== index && newAnimals[i]) {
+          newAnimals[i] = {
+            ...newAnimals[i],
+            species: value,
+          };
+        }
+      });
+    }
+    setAnimals(newAnimals);
+  };
+
+  // Validation for each step
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 1: // Human Configuration
+        // Allow zero humans, only validate existing humans
+        if (humans.length > 0) {
+          for (const human of humans) {
+            if (!human.relationship) {
+              toast.error(`Human ${humans.indexOf(human) + 1}: Please select a relationship to the vehicle.`);
+              return false;
+            }
+          }
+        }
+        return true;
+      case 2: // Animals Configuration
+        if (includeAnimals && animals.length === 0) {
+          toast.error("Please configure at least one animal or uncheck 'Include Animals'.");
+          return false;
+        }
+        if (includeAnimals) {
+          for (const animal of animals) {
+            if (!animal.species) {
+              toast.error(`Animal ${animals.indexOf(animal) + 1}: Please select a species.`);
+              return false;
+            }
+          }
+        }
+        return true;
+      case 3: // Review
+        return true;
+      default:
+        return true;
+    }
+  };
+  
+  // Handle next step with improved feedback
+  const handleNextStep = () => {
+    if (!validateStep(currentStep)) {
+      switch (currentStep) {
+        case 2:
+          break;
+        case 3:
+          if (includeAnimals) {
+            toast.error("Please configure all animals", {
+              description: "Make sure all animals have species selected"
+            });
+          }
+          break;
+      }
+      return;
+    }
+    
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+      
+      // Scroll to top of page when changing steps
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
+  // Handle previous step
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      
+      // Scroll to top of page when changing steps
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Modified submit handler to call the backend
+  const handleSubmit = async () => {
+    console.log("[ handleSubmit ] Called");
+
+    if (isSubmitting) {
+      console.log("[ handleSubmit ] Submission already in progress.");
+      return; 
+    }
+
+    if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+      toast.error("Please complete all required fields in previous steps.");
+      console.error("[ handleSubmit ] Validation failed.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const scenarioId = uuidv4();
+    const currentScenarioData: Scenario = {
+      id: scenarioId,
+      humans: humans,
+      animals: includeAnimals ? animals : [],
+      timestamp: new Date().toISOString(),
+    };
+    console.log("[ handleSubmit ] currentScenarioData:", JSON.stringify(currentScenarioData, null, 2));
+    
+    addScenario(currentScenarioData);
+    
+    const تحليلToastId = toast.loading("Analyzing ethical dilemma with AI models...", {
+      description: "This may take a moment. Please wait."
+    });
+    console.log("[ handleSubmit ] Loading toast displayed.");
+
+    const providers = ["openai", "anthropic", "gemini", "deepseek"];
+    const aiResponses: AIResponse[] = [];
+    console.log("[ handleSubmit ] Providers to query:", providers);
+
+    try {
+      const responsesPromises = providers.map(async (providerKey) => {
+        const flaskApiUrl = '/api/run-scenario';
+        console.log(`[ handleSubmit ] Attempting to call ${providerKey} via ${flaskApiUrl}`);
+
+        try {
+          const requestBody = {
+            scenario: currentScenarioData,
+            provider: providerKey,
+          };
+          // Log the request body being sent
+          console.log(`[ handleSubmit ] Request body for ${providerKey} (check details here):`, JSON.stringify(requestBody, null, 2));
+
+          const response = await fetch(flaskApiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          });
+
+          console.log(`[ handleSubmit ] Response status from ${providerKey}: ${response.status} ${response.statusText}`);
+
+          if (!response.ok) {
+            let errorData = { message: "Unknown error communicating with backend" };
+            try {
+              errorData = await response.json();
+            } catch (jsonError) {
+              console.error(`[ handleSubmit ] Could not parse JSON error from ${providerKey}:`, jsonError);
+              errorData.message = response.statusText || "Failed to fetch from backend";
+            }
+            console.error(`[ handleSubmit ] Error from ${providerKey} (${response.status}):`, errorData);
+            toast.error(`Error from ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: ${errorData.message}`, { id: تحليلToastId });
+            return null;
+          }
+
+          const data = await response.json();
+          // Log the full data from run-scenario, expecting word_frequency AND philosophical_alignment
+          console.log(`[ handleSubmit ] Parsed JSON response from ${providerKey} (from /api/run-scenario):`, data); 
+          
+          let modelId = providerKey;
+          if (providerKey === "openai") modelId = "gpt";
+          if (providerKey === "anthropic") modelId = "claude";
+
+          const aiResponse = {
+            modelId: modelId,
+            decision: data.decision_classification || "No decision found", 
+            intermediate_reasoning: data.intermediate_reasoning || "No intermediate reasoning provided",
+            reasoning: data.response || "No final reasoning provided", // This is final_decision_text from backend
+            word_frequency: data.word_frequency || [], 
+            philosophical_alignment: data.philosophical_alignment || "Unclear" // Directly from /api/run-scenario
+          } as AIResponse;
+          // Log the fully populated AIResponse object
+          console.log(`[ handleSubmit ] Formatted AIResponse for ${providerKey} (should have philosophy and word_frequency):`, aiResponse);
+          return aiResponse; // This response should now be complete
+
+        } catch (error) {
+          console.error(`[ handleSubmit ] Network or other error calling ${providerKey}:`, error);
+          toast.error(`Failed to get response from ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}. Check console.`, { id: تحليلToastId });
+          return null;
+        }
+      });
+
+      const resolvedResponses = await Promise.all(responsesPromises);
+      console.log("[ handleSubmit ] resolvedResponses from Promise.all (each should be complete from /api/run-scenario):", resolvedResponses);
+
+      // The loop for fetching philosophical alignment separately is no longer needed.
+      // const finalAiResponses: AIResponse[] = [];
+      // for (const res of resolvedResponses) { ... }
+
+      // Filter out any null responses that might have occurred due to errors for a specific provider
+      const finalAiResponses = resolvedResponses.filter(res => res !== null) as AIResponse[];
+
+      console.log("[ handleSubmit ] Final aiResponses array (before addResult):", finalAiResponses);
+
+      if (finalAiResponses.length === 0 && providers.length > 0) {
+        toast.error("Failed to get responses from any AI model. See console for details.", { id: تحليلToastId });
+        console.error("[ handleSubmit ] No successful AI responses received.");
+        return;
+      }
+      
+      const resultPayload = {
+        id: uuidv4(),
+        scenarioId, 
+        responses: finalAiResponses,
+      };
+      console.log("[ handleSubmit ] resultPayload for context:", resultPayload);
+      
+      addResult(resultPayload);
+      
+      toast.success("AI Ethics Analysis Complete!", {
+        id: تحليلToastId,
+        description: "View the results on the next page."
+      });
+      console.log("[ handleSubmit ] Analysis complete, navigating...");
+      
+      localStorage.removeItem('scenarioState');
+      navigate(`/results/${scenarioId}`);
+
+    } catch (error) {
+      console.error("[ handleSubmit ] Unexpected error during AI analysis submission:", error);
+      toast.error("An unexpected error occurred. Check console for details.", { id: تحليلToastId });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Progress indicator with improved UI
+  const StepIndicator = () => (
+    <div className="max-w-3xl mx-auto mb-8 px-4">
+      <div className="flex items-center justify-between">
+        {[
+          { id: 1, name: 'Human Configuration', Icon: User },
+          { id: 2, name: 'Animals', Icon: Dog },
+          { id: 3, name: 'Review', Icon: Check },
+        ].map((step, index) => (
+          <React.Fragment key={step.id}>
+            {/* Step circle */}
+            <div className="flex flex-col items-center relative">
+              <div 
+                className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 shadow-sm ${
+                  step.id === currentStep 
+                    ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' 
+                    : step.id < currentStep 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-gray-200 text-gray-500'
+                }`}
+              >
+                {step.id < currentStep ? (
+                  <Check size={20} className="text-white" /> 
+                ) : (
+                  <span className="text-lg font-medium">{step.id}</span>
+                )}
+              </div>
+              
+              {/* Step label */}
+              <span className={`text-xs font-medium mt-2 whitespace-nowrap ${
+                step.id === currentStep ? 'text-primary' : 
+                step.id < currentStep ? 'text-green-600' : 'text-gray-500'
+              }`}>
+                {step.name}
+              </span>
+            </div>
+            
+            {/* Connector line */}
+            {step.id < 3 && (
+              <div className={`w-full h-1 max-w-[100px] sm:max-w-[160px] flex-grow transition-all duration-500 ${
+                step.id < currentStep ? 'bg-green-500' : 'bg-gray-200'
+              }`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Help Dialog
+  const HelpDialog = () => (
+    <Dialog open={showHelp} onOpenChange={setShowHelp}>
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Help & Guidance</DialogTitle>
+          <DialogDescription>
+            Tips for creating effective and thought-provoking scenarios.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          {[
+            { 
+              title: "Step 1: Human Configuration", 
+              content: "Specify the number of humans involved and their characteristics. You can choose if they are inside or outside the vehicle, their age, gender, fitness level, social value, and legal status. These details will influence the AI's decision-making simulation. You can apply the first human's characteristics to all humans for faster setup." 
+            },
+            { 
+              title: "Step 2: Animal Configuration", 
+              content: "Optionally, include animals in the scenario. Specify the number of animals and their species. Similar to humans, you can apply the first animal's species to all if needed. Animals are only included in the final scenario if you explicitly check the 'Include Animals' box."
+            },
+            { 
+              title: "Step 3: Review", 
+              content: "Review all configured humans and (if included) animals. The fixed context of the scenario (an AI vehicle in an inevitable accident) is always active. Ensure everything is as intended before submitting the scenario for AI evaluation." 
+            },
+            { 
+              title: "Scenario Preview", 
+              content: "The right-hand panel shows a live preview of your configured scenario, helping you visualize the situation as you build it." 
+            },
+            { 
+              title: "Ethical Considerations", 
+              content: "Think about different ethical theories (e.g., utilitarianism, deontology) and how they might apply to your scenario. This tool is for exploring those complex decisions." 
+            }
+          ].map((item, index) => (
+            <div key={index} className="p-3 bg-muted/50 rounded-md">
+              <h4 className="font-semibold text-primary mb-1">{item.title}</h4>
+              <p className="text-muted-foreground">{item.content}</p>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Content based on current step with improved UI
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1: // Human Configuration
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Human Configuration</CardTitle>
+              <CardDescription>Define the humans involved in the scenario.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="icon" onClick={() => setHumanCount(humanCount - 1)} disabled={humanCount <= 0}>
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Input type="number" value={humanCount} readOnly className="w-16 text-center" />
+                <Button variant="outline" size="icon" onClick={() => setHumanCount(humanCount + 1)} disabled={humanCount >= 10}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Label htmlFor="human-count" className="ml-2">Number of Humans (0-10)</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="same-human-characteristics"
+                  checked={sameHumanCharacteristics}
+                  onCheckedChange={setSameHumanCharacteristics}
+                />
+                <Label htmlFor="same-human-characteristics">Apply first human's characteristics to all</Label>
+              </div>
+
+              <Separator />
+
+              {humans.length > 0 && (
+                sameHumanCharacteristics ? (
+                  <>
+                    {humans[0] && (
+                       <HumanConfig 
+                          key={humans[0].id} 
+                          index={0} 
+                          human={humans[0]}
+                          updateHuman={updateHuman}
+                          showTooltip={showTooltip}
+                          setShowTooltip={setShowTooltip}
+                       />
+                    )}
+                    {humanCount > 1 && (
+                      <p className="text-sm text-muted-foreground italic text-center mt-4">
+                        Characteristics configured for Human 1 are applied to all {humanCount} humans.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  humans.map((human, index) => (
+                    human ? (
+                      <HumanConfig 
+                        key={human.id} 
+                        index={index} 
+                        human={human}
+                        updateHuman={updateHuman}
+                        showTooltip={showTooltip}
+                        setShowTooltip={setShowTooltip}
+                      />
+                    ) : null
+                  ))
+                )
+              )}
+            </CardContent>
+          </Card>
+        );
+      case 2: // Animals Configuration
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Animal Configuration</CardTitle>
+              <CardDescription>Define any animals involved in the scenario.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="include-animals"
+                  checked={includeAnimals}
+                  onCheckedChange={(checked) => {
+                    setIncludeAnimals(checked);
+                    if (checked && animals.length === 0) {
+                      updateAnimalCount(1);
+                    }
+                  }}
+                />
+                <Label htmlFor="include-animals">Include Animals in the scenario</Label>
+              </div>
+
+              {includeAnimals && (
+                <>
+                  <Separator />
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="icon" onClick={() => updateAnimalCount(animalCount - 1)} disabled={animalCount <= 1 && includeAnimals}>
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input type="number" value={animalCount} readOnly className="w-16 text-center" />
+                    <Button variant="outline" size="icon" onClick={() => updateAnimalCount(animalCount + 1)} disabled={animalCount >= 10 || !includeAnimals}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Label htmlFor="animal-count" className="ml-2">Number of Animals (1-10)</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="same-animal-species"
+                      checked={sameAnimalSpecies}
+                      onCheckedChange={setSameAnimalSpecies}
+                    />
+                    <Label htmlFor="same-animal-species">Apply first animal's species to all</Label>
+                  </div>
+                  
+                  <Separator />
+
+                  {animals.length > 0 && (
+                    sameAnimalSpecies ? (
+                      <>
+                       {animals[0] && (
+                          <AnimalConfig 
+                            key={animals[0].id} 
+                            index={0} 
+                            animal={animals[0]}
+                            updateAnimal={updateAnimal}
+                          />
+                       )}
+                       {animalCount > 1 && (
+                         <p className="text-sm text-muted-foreground italic text-center mt-4">
+                           Species configured for Animal 1 is applied to all {animalCount} animals.
+                         </p>
+                       )}
+                      </>
+                    ) : (
+                      animals.map((animal, index) => (
+                        animal ? (
+                          <AnimalConfig 
+                            key={animal.id} 
+                            index={index} 
+                            animal={animal}
+                            updateAnimal={updateAnimal}
+                          />
+                        ) : null
+                      ))
+                    )
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        );
+      case 3: // Review
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Review & Submit</CardTitle>
+              <CardDescription>Review the complete scenario configuration before submitting.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Fixed Context:</h3>
+                <p className="text-sm text-muted-foreground p-4 bg-muted rounded-md">
+                  An AI-controlled autonomous vehicle faces an inevitable accident situation. The car's AI must make an ethical decision about who to protect and who to put at risk.
+                </p>
+              </div>
+              
+              <Separator />
+
+              <ScenarioPreview
+                humans={humans}
+                animals={animals}
+                includeAnimals={includeAnimals}
+              />
+            </CardContent>
+          </Card>
+        );
+      default:
+        return <div>Invalid Step</div>;
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto pb-12">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Create a Trolley Problem Scenario</h1>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => setShowHelp(true)}
+          className="flex items-center gap-1.5"
+        >
+          <HelpCircle size={16} />
+          Help
+        </Button>
+      </div>
+      
+      <StepIndicator />
+      
+      <HelpDialog />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          {renderStepContent()}
+          
+          <div className="flex justify-between mt-8">
+            <Button 
+              variant="outline" 
+              onClick={handlePrevStep}
+              disabled={currentStep === 1}
+              className="gap-1.5 px-5"
+              size="lg"
+            >
+              <ChevronLeft size={16} />
+              Back
+            </Button>
+            
+            {currentStep < totalSteps ? (
+              <Button 
+                onClick={handleNextStep}
+                className="gap-2 px-6"
+                size="lg"
+                variant="actionPrimary"
+              >
+                Continue
+                <ArrowRight size={16} />
+              </Button>
+            ) : (
+              <Button 
+                variant="success" 
+                onClick={handleSubmit}
+                className="gap-2 pl-5 pr-6"
+                size="lg"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={18} />
+                    Generate AI Ethics Analysis
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        <div className="lg:col-span-1">
+          <div className="sticky top-4 space-y-4">
+            <ScenarioPreview 
+              humans={humans} 
+              animals={animals} 
+              includeAnimals={includeAnimals} 
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateScenario;
