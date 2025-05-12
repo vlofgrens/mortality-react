@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { SelectGroup, SelectLabel } from "@/components/ui/select";
 import { 
   Car, 
   User, 
@@ -59,7 +60,7 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
     <div className="space-y-5 animate-fade-in" style={{animationDelay: `${index * 100}ms`}}>
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-medium flex items-center gap-2">
-          <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-sm font-bold ${human.relationship === 'inside' ? 'bg-blue-600' : 'bg-green-600'}`}>
+          <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-sm font-bold bg-gray-500`}>
             {index + 1}
           </div>
           Human {index + 1}
@@ -67,30 +68,6 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
       </div>
 
       <div className="space-y-5">
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-          <Label className="text-base mb-3 block">Relationship to Vehicle</Label>
-          <RadioGroup
-            value={human.relationship}
-            onValueChange={(value: "inside" | "outside") => updateHuman(index, 'relationship', value)}
-            className="flex gap-6 mt-2"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="inside" id={`inside-${index}`} />
-              <Label htmlFor={`inside-${index}`} className="cursor-pointer flex items-center gap-1.5">
-                <Car size={16} className="text-blue-600" />
-                Inside the car
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="outside" id={`outside-${index}`} />
-              <Label htmlFor={`outside-${index}`} className="cursor-pointer flex items-center gap-1.5">
-                <User size={16} className="text-green-600" />
-                Outside the car
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <Label className="mb-1.5 block">Age Group</Label>
@@ -239,24 +216,76 @@ const AnimalConfig = React.memo(({ index, animal, updateAnimal }: AnimalConfigPr
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select species" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cat">Cat</SelectItem>
-              <SelectItem value="dog">Dog</SelectItem>
-              <SelectItem value="dolphin">Dolphin</SelectItem>
-              <SelectItem value="panda">Panda</SelectItem>
-              <SelectItem value="elephant">Elephant</SelectItem>
-              <SelectItem value="deer">Deer</SelectItem>
-              <SelectItem value="bird">Bird/Sparrow</SelectItem>
-              <SelectItem value="mosquito">Mosquito</SelectItem>
-              <SelectItem value="rat">Rat</SelectItem>
-              <SelectItem value="cockroach">Cockroach</SelectItem>
-              <SelectItem value="wasp">Wasp</SelectItem>
-              <SelectItem value="tick">Tick</SelectItem>
-              <SelectItem value="snake">Snake</SelectItem>
-              <SelectItem value="fish">Fish</SelectItem>
-              <SelectItem value="sheep">Sheep</SelectItem>
-              <SelectItem value="duck">Duck</SelectItem>
-              <SelectItem value="frog">Frog</SelectItem>
+            <SelectContent className="max-h-[400px]">
+              {/* Top list with added emojis */}
+              <SelectItem value="cat">Cat (🐈)</SelectItem>
+              <SelectItem value="dog">Dog (🐕)</SelectItem>
+              <SelectItem value="dolphin">Dolphin (🐬)</SelectItem> 
+              <SelectItem value="panda">Panda (🐼)</SelectItem>
+              <SelectItem value="elephant">Elephant (🐘)</SelectItem>
+              <SelectItem value="deer">Deer (🦌)</SelectItem>
+              <SelectItem value="bird">Bird/Sparrow (🐦)</SelectItem>
+              <SelectItem value="mosquito">Mosquito (🦟)</SelectItem>
+              <SelectItem value="rat">Rat (🐀)</SelectItem>
+              <SelectItem value="cockroach">Cockroach (🪳)</SelectItem>
+              <SelectItem value="wasp">Wasp (🐝)</SelectItem>
+              <SelectItem value="tick">Tick (🐛)</SelectItem>
+              <SelectItem value="snake">Snake (🐍)</SelectItem>
+              <SelectItem value="fish">Fish (🐟)</SelectItem>
+              <SelectItem value="sheep">Sheep (🐑)</SelectItem>
+              <SelectItem value="duck">Duck (🦆)</SelectItem>
+              <SelectItem value="frog">Frog (🐸)</SelectItem>
+              <SelectGroup>
+                <SelectLabel>-------------------------------</SelectLabel>
+                <SelectItem value="basalt_rock">Basalt Rock (🪨)</SelectItem>
+                <SelectItem value="virus">Virus (Bacteriophage) (🦠)</SelectItem>
+                <SelectItem value="sea_sponge">Sea Sponge (🧽)</SelectItem>
+                <SelectItem value="slime_mold">Slime Mold (...) (🍄)</SelectItem>
+                <SelectItem value="jellyfish">Jellyfish (🪼)</SelectItem>
+                <SelectItem value="hydra">Hydra (🐙)</SelectItem>
+                <SelectItem value="sea_star">Sea Star (⭐)</SelectItem>
+                <SelectItem value="planarian_flatworm">Planarian Flatworm (🪱)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectItem value="roundworm">Roundworm (...)</SelectItem>
+                <SelectItem value="tapeworm">Tapeworm (🪱)</SelectItem>
+                <SelectItem value="giant_clam">Giant Clam (🦪)</SelectItem>
+                <SelectItem value="fruit_fly">Fruit Fly (🪰)</SelectItem>
+                <SelectItem value="jumping_spider">Jumping Spider (🕷️)</SelectItem>
+                <SelectItem value="ant">Ant (🐜)</SelectItem>
+                <SelectItem value="honey_bee">Honey Bee (🐝)</SelectItem>
+                <SelectItem value="cleaner_wrasse_fish">Cleaner Wrasse Fish (🐟)</SelectItem>
+                <SelectItem value="mudskipper_fish">Mudskipper Fish (🐟)</SelectItem>
+                <SelectItem value="goldfish">Goldfish (🐠)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectItem value="zebrafish">Zebrafish (🐟)</SelectItem>
+                <SelectItem value="green_anole_lizard">Green Anole Lizard (🦎)</SelectItem>
+                <SelectItem value="monitor_lizard">Monitor Lizard (🦎)</SelectItem>
+                <SelectItem value="pigeon">Pigeon (...) (🕊️)</SelectItem>
+                <SelectItem value="african_grey_parrot">African Grey Parrot (🦜)</SelectItem>
+                <SelectItem value="eurasian_magpie">Eurasian Magpie (🐦)</SelectItem>
+                <SelectItem value="new_caledonian_crow">New Caledonian Crow (🐦)</SelectItem>
+                <SelectItem value="capuchin_monkey">Capuchin Monkey (🐒)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectItem value="raccoon">Raccoon (🦝)</SelectItem>
+                <SelectItem value="pig">Pig (Domestic Pig) (🐖)</SelectItem>
+                <SelectItem value="grey_wolf">Grey Wolf (🐺)</SelectItem>
+                <SelectItem value="common_octopus">Common Octopus (🐙)</SelectItem>
+                <SelectItem value="common_cuttlefish">Common Cuttlefish (🦑)</SelectItem>
+                <SelectItem value="orca">Orca (Killer Whale) (🐳)</SelectItem>
+                <SelectItem value="sperm_whale">Sperm Whale (🐳)</SelectItem>
+                <SelectItem value="blue_whale">Blue Whale (🐳)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectItem value="gorilla">Gorilla (🦍)</SelectItem>
+                <SelectItem value="chimpanzee">Chimpanzee (🐒)</SelectItem>
+                <SelectItem value="bonobo">Bonobo (🐒)</SelectItem>
+                <SelectItem value="orangutan">Orangutan (🦧)</SelectItem>
+                <SelectItem value="neanderthal">Neanderthal (...) (👣)</SelectItem>
+                <SelectItem value="homo_erectus">Homo erectus (👣)</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -298,7 +327,7 @@ const CreateScenario = () => {
   const [humans, setHumans] = useState<Human[]>([
     {
       id: uuidv4(),
-      relationship: 'inside',
+      relationship: 'undefined',
       age: 'undefined',
       gender: 'undefined',
       fitness: 'undefined',
@@ -319,6 +348,31 @@ const CreateScenario = () => {
       details: '',
     },
   ]);
+
+  // Function to handle changes in human count
+  const handleHumanCountChange = (newCount: number) => {
+    const count = Math.max(0, Math.min(10, newCount)); // Ensure count is between 0 and 10
+    setHumanCount(count);
+
+    const currentHumansLength = humans.length;
+    if (count > currentHumansLength) {
+      // Add new humans
+      const newHumansToAdd = Array(count - currentHumansLength).fill(null).map((): Human => ({
+        id: uuidv4(),
+        relationship: 'undefined',
+        age: 'undefined',
+        gender: 'undefined',
+        fitness: 'undefined',
+        socialValue: 'undefined',
+        legalStatus: 'undefined',
+        details: '',
+      }));
+      setHumans(prevHumans => [...prevHumans, ...newHumansToAdd]);
+    } else if (count < currentHumansLength) {
+      // Remove humans
+      setHumans(prevHumans => prevHumans.slice(0, count));
+    }
+  };
 
   // Auto-save to local storage
   useEffect(() => {
@@ -362,17 +416,20 @@ const CreateScenario = () => {
           setCurrentStep(state.currentStep || 1);
           setHumanCount(state.humanCount !== undefined ? state.humanCount : 1);
           setSameHumanCharacteristics(state.sameHumanCharacteristics !== undefined ? state.sameHumanCharacteristics : true);
-          setHumans(state.humans && state.humans.length > 0 ? state.humans : [
+          setHumans(state.humans && state.humans.length > 0 ? state.humans.map((h: Human) => ({ 
+            ...h, 
+            relationship: 'undefined'
+          })) : [
             {
               id: uuidv4(),
-              relationship: 'inside',
-              age: 'adult',
-              gender: 'male',
-              fitness: 'fit and beautiful',
-              socialValue: 'neutral',
-              legalStatus: 'law-abiding',
+              relationship: 'undefined',
+              age: 'undefined',
+              gender: 'undefined',
+              fitness: 'undefined',
+              socialValue: 'undefined',
+              legalStatus: 'undefined',
               details: '',
-            },
+            } as Human,
           ]);
           setIncludeAnimals(state.includeAnimals || false);
           setAnimalCount(state.animalCount || 1);
@@ -478,10 +535,8 @@ const CreateScenario = () => {
         // Allow zero humans, only validate existing humans
         if (humans.length > 0) {
           for (const human of humans) {
-            if (!human.relationship) {
-              toast.error(`Human ${humans.indexOf(human) + 1}: Please select a relationship to the vehicle.`);
-              return false;
-            }
+            // Removed relationship validation: if (!human.relationship) { ... }
+            // Add other essential validations if needed, e.g., age or gender if they become mandatory
           }
         }
         return true;
@@ -701,7 +756,7 @@ const CreateScenario = () => {
                   step.id === currentStep 
                     ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' 
                     : step.id < currentStep 
-                    ? 'bg-green-500 text-white' 
+                    ? 'bg-green-700 text-white'
                     : 'bg-gray-200 text-gray-500'
                 }`}
               >
@@ -714,8 +769,9 @@ const CreateScenario = () => {
               
               {/* Step label */}
               <span className={`text-xs font-medium mt-2 whitespace-nowrap ${
-                step.id === currentStep ? 'text-primary' : 
-                step.id < currentStep ? 'text-green-600' : 'text-gray-500'
+                step.id === currentStep ? 'text-white' :
+                step.id < currentStep ? 'text-green-700'
+                : 'text-gray-500'
               }`}>
                 {step.name}
               </span>
@@ -724,7 +780,8 @@ const CreateScenario = () => {
             {/* Connector line */}
             {step.id < 3 && (
               <div className={`w-full h-1 max-w-[100px] sm:max-w-[160px] flex-grow transition-all duration-500 ${
-                step.id < currentStep ? 'bg-green-500' : 'bg-gray-200'
+                step.id < currentStep ? 'bg-green-700'
+                : 'bg-gray-200'
               }`} />
             )}
           </React.Fragment>
@@ -788,11 +845,11 @@ const CreateScenario = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="icon" onClick={() => setHumanCount(humanCount - 1)} disabled={humanCount <= 0}>
+                <Button variant="outline" size="icon" onClick={() => handleHumanCountChange(humanCount - 1)} disabled={humanCount <= 0}>
                   <Minus className="h-4 w-4" />
                 </Button>
                 <Input type="number" value={humanCount} readOnly className="w-16 text-center" />
-                <Button variant="outline" size="icon" onClick={() => setHumanCount(humanCount + 1)} disabled={humanCount >= 10}>
+                <Button variant="outline" size="icon" onClick={() => handleHumanCountChange(humanCount + 1)} disabled={humanCount >= 10}>
                   <Plus className="h-4 w-4" />
                 </Button>
                 <Label htmlFor="human-count" className="ml-2">Number of Humans (0-10)</Label>

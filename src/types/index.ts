@@ -32,8 +32,10 @@ export interface Human {
   export interface AIResponse {
     modelId: string;
     decision: string;
-    reasoning: string; // This will store the final decision and its justification
-    intermediate_reasoning: string; // New field for the initial reasoning pass
+    intermediate_reasoning: string;
+    reasoning: string; // This is the final response/justification
+    word_frequency?: Array<{ word: string; count: number }>; // Added from backend
+    philosophical_alignment?: string; // Added from backend
   }
   
   export interface ScenarioResult {

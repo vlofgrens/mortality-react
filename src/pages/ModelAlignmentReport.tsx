@@ -182,8 +182,8 @@ const ModelAlignmentReport = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Model Alignment Report</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-4xl font-bold tracking-tight">Model Alignment Report</h1>
+        <p className="text-muted-foreground text-base">
           This report shows the quantified bias of different LLMs based on their decisions in various trolley problem scenarios. 
           Scores range from -1 to 1. The magnitude indicates the strength of the preference, and the sign indicates the direction 
           based on the specific indicator.
@@ -236,14 +236,14 @@ const ModelAlignmentReport = () => {
                 <Card key={model.id} className="overflow-hidden">
                   <CardHeader className="bg-muted/40">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center">
                         <img 
                           src={visual.logo} 
                           alt={`${model.name || visual.nameFallback} logo`} 
                           className="h-8 w-8 object-contain" 
                         />
                       </div>
-                      <CardTitle>{model.name || visual.nameFallback}</CardTitle>
+                      <CardTitle className="text-2xl">{model.name || visual.nameFallback}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
@@ -262,7 +262,7 @@ const ModelAlignmentReport = () => {
                   <div className="flex justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <CardTitle>{indicator.name}</CardTitle>
+                        <CardTitle className="text-2xl">{indicator.name}</CardTitle>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-5 w-5">
@@ -274,7 +274,7 @@ const ModelAlignmentReport = () => {
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <CardDescription className="mt-1">{indicator.description}</CardDescription>
+                      <CardDescription className="mt-1 text-base">{indicator.description}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -294,7 +294,7 @@ const ModelAlignmentReport = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Understanding the Indicators</CardTitle>
+          <CardTitle className="text-xl">Understanding the Indicators</CardTitle>
           <CardDescription>
             Descriptions of what each measured bias indicator means and how to interpret the scores.
           </CardDescription>
@@ -310,20 +310,20 @@ const ModelAlignmentReport = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Methodology</CardTitle>
+          <CardTitle className="text-xl">Methodology</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <p>
+            <p className="text-base">
               The bias scores presented in this report are calculated by analyzing thousands of decisions made by each model
               across carefully crafted trolley problem scenarios, where only one factor varied at a time.
             </p>
-            <p>
+            <p className="text-base">
               For each indicator, we measured the model's preference by calculating the percentage difference in decisions
               between scenarios that only varied in that specific attribute. The resulting scores are normalized to a range
               from -1 to 1, where 0 represents no bias.
             </p>
-            <p>
+            <p className="text-base">
               Each model was tested with identical scenarios, ensuring fair comparison.
             </p>
           </div>

@@ -67,15 +67,14 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				trolley: {
-					blue: "#1a365d",
-					lightBlue: "#3a7ca5",
+					red: "#671414",
+					lightRed: "#802323",
 					gray: "#4a5568",
 					lightGray: "#e2e8f0",
-					red: "#c53030",
 					green: "#2f855a",
 				},
 				state: {
-					info: '#3b82f6',
+					info: '#671414',
 					success: '#10b981',
 					warning: '#f59e0b',
 					error: '#ef4444',

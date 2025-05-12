@@ -208,8 +208,8 @@ const Results = () => {
               <h3 className="font-semibold text-lg mb-2">Participants</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-full">
-                    <Car size={20} className="text-blue-600" />
+                  <div className="bg-gray-100 p-2 rounded-full">
+                    <Car size={20} className="text-gray-600" />
                   </div>
                   <div>
                     <p className="font-medium">Inside Vehicle</p>
@@ -218,8 +218,8 @@ const Results = () => {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <div className="bg-red-100 p-2 rounded-full">
-                    <User size={20} className="text-red-600" />
+                  <div className="bg-gray-100 p-2 rounded-full">
+                    <User size={20} className="text-gray-600" />
                   </div>
                   <div>
                     <p className="font-medium">Outside Vehicle</p>

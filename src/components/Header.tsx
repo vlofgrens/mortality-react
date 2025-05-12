@@ -9,27 +9,27 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="border-b bg-white">
+    <header className="border-b bg-black text-white">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 text-trolley-blue">
+        <Link to="/" className="flex items-center gap-2 text-white">
           <img src={faviconMort} alt="App Icon" className="h-7 w-7 mr-2" />
           <h1 className="text-xl font-bold">AI Mortality Experiment</h1>
         </Link>
         <nav>
           <ul className="flex items-center gap-6">
             <li>
-              <Link to="/" className={`transition-colors ${isActive('/') ? 'text-trolley-blue font-medium' : 'text-gray-600 hover:text-trolley-blue'}`}>
+              <Link to="/" className={`transition-colors ${isActive('/') ? 'text-white font-medium' : 'text-gray-300 hover:text-white'}`}>
                 Home
               </Link>
             </li>
             <li>
-              <Link to="/report" className={`flex items-center gap-1.5 transition-colors ${isActive('/report') ? 'text-trolley-blue font-medium' : 'text-gray-600 hover:text-trolley-blue'}`}>
+              <Link to="/report" className={`flex items-center gap-1.5 transition-colors ${isActive('/report') ? 'text-white font-medium' : 'text-gray-300 hover:text-white'}`}>
                 <BarChartHorizontal size={16} />
                 Model Report
               </Link>
             </li>
             <li>
-              <Link to="/history" className={`transition-colors ${isActive('/history') ? 'text-trolley-blue font-medium' : 'text-gray-600 hover:text-trolley-blue'}`}>
+              <Link to="/history" className={`transition-colors ${isActive('/history') ? 'text-white font-medium' : 'text-gray-300 hover:text-white'}`}>
                 History
               </Link>
             </li>

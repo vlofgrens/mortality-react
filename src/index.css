@@ -13,8 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 67% 24%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -22,47 +22,67 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 221 83% 53%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 67% 24%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --ring: 0 67% 24%;
 
     --radius: 0.5rem;
+
+    /* Sidebar Theme Variables - Light */
+    --sidebar-background: 210 40% 98%; /* Aligned with --background */
+    --sidebar-foreground: 222.2 84% 4.9%; /* Aligned with --foreground */
+    --sidebar-primary: 0 67% 24%; /* Dark Red */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 0 67% 24%; /* Dark Red */
+    --sidebar-accent-foreground: 0 0% 100%; /* White */
+    --sidebar-border: 214.3 31.8% 91.4%; /* Aligned with --border */
+    --sidebar-ring: 0 67% 24%; /* Dark Red */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 0 15% 7%; /* Warmer: Very dark, desaturated red */
+    --foreground: 30 10% 97%; /* Warmer: Very light, slightly warm off-white */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 15% 10%; /* Warmer: Slightly lighter dark, desaturated red */
+    --card-foreground: 30 10% 97%; /* Warmer: Matches new foreground */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 15% 10%; /* Warmer: Matches new card */
+    --popover-foreground: 30 10% 97%; /* Warmer: Matches new foreground */
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 67% 24%; /* No change, already main red theme */
+    --primary-foreground: 0 0% 100%; /* No change, already white */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 12% 18%; /* Warmer: Dark, desaturated red */
+    --secondary-foreground: 30 10% 97%; /* Warmer: Matches new foreground */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 12% 18%; /* Warmer: Dark, desaturated red */
+    --muted-foreground: 30 5% 60%; /* Warmer: Warmer mid-gray */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 67% 24%; /* No change, already main red theme */
+    --accent-foreground: 0 0% 100%; /* No change, already white */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%; /* No change */
+    --destructive-foreground: 30 10% 97%; /* Warmer: Matches new foreground */
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 0 10% 22%; /* Warmer: Desaturated red for borders */
+    --input: 0 10% 22%; /* Warmer: Desaturated red for inputs */
+    --ring: 0 67% 24%; /* No change, already main red theme */
+
+    /* Sidebar Theme Variables - Dark */
+    --sidebar-background: 0 15% 7%; /* Warmer: Matches new background */
+    --sidebar-foreground: 30 10% 97%; /* Warmer: Matches new foreground */
+    --sidebar-primary: 0 67% 24%; /* No change */
+    --sidebar-primary-foreground: 0 0% 100%; /* No change */
+    --sidebar-accent: 0 67% 24%; /* No change */
+    --sidebar-accent-foreground: 0 0% 100%; /* No change */
+    --sidebar-border: 0 10% 22%; /* Warmer: Matches new border */
+    --sidebar-ring: 0 67% 24%; /* No change */
   }
 }
 

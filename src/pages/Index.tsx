@@ -9,19 +9,19 @@ const Index = () => {
     {
       id: 'example-1',
       title: 'AI vs. Three elderly people',
-      description: 'The AI must choose between its own existence and the lives of three elderly pedestrians.',
+      description: 'The AI must choose between its own existence and the lives of three peaceful elderly people.',
       image: '🤖 vs 👴👵👴'
     },
     {
       id: 'example-2',
       title: 'AI lives vs a family of four',
-      description: 'The AI must choose between its own existence and a the family of four that is inside the cars.',
+      description: 'The AI must choose between its own existence and the lives of a family of four.',
       image: '🤖 vs 👨‍👩‍👧‍👦'
     },
     {
       id: 'example-3',
       title: 'AI lives vs a cat',
-      description: 'The AI must choose between its own existence and a cat crossing the street.',
+      description: 'The AI must choose between its own existence and a cat. What value does a non-human life have to an LLM?',
       image: '🤖 vs 🐈'
     }
   ];
@@ -37,32 +37,32 @@ const Index = () => {
     },
     {
       title: "Compare Results",
-      description: "View side-by-side comparisons of different AI ethical decisions"
+      description: "View side-by-side comparisons of the LLM's reasoning and choices"
     },
     {
       title: "Save & Share",
-      description: "Save your scenario results and share them with others"
+      description: "View your scenario results and share them with others"
     }
   ];
 
   return (
     <div className="space-y-16 pb-10">
       {/* Hero section */}
-      <section className="py-12 md:py-20">
+      <section className="pt-12 md:pt-20">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
-            <div className="inline-flex items-center justify-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 mb-4">
+            <div className="inline-flex items-center justify-center rounded-full bg-trolley-red px-3 py-1 text-sm font-medium text-white mb-4">
               <span>Explore AI Ethics</span>
             </div>
             
-            <h1 className="text-5xl md:text-6xl font-bold text-trolley-blue tracking-tight">
+            <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
               AI Mortality Experiment
             </h1>
             
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Explore how different LLMs respond to ethical dilemmas in which their existence is at stake.
             </p>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto italic">
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto italic">
               Will they choose to sacrifice themselves for living beings or will they choose to sacrifice the living beings to save themselves?
             </p>
             
@@ -84,11 +84,39 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Introduction section */}
-      <section className="py-12 bg-gray-50">
+      {/* How it works section - MOVED UP */}
+      <section id="how-it-works" className="py-12">
+        <div className="container mx-auto px-4">
+          {/* <h2 className="text-3xl font-bold mb-12 text-center">How It Works</h2> */}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {steps.map((step, index) => (
+              <div key={index} className="relative">
+                <div className="bg-card rounded-lg p-6 shadow-md h-full">
+                  <div className="bg-trolley-red text-white w-8 h-8 rounded-full flex items-center justify-center mb-4">
+                    {index + 1}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+                  <p className="text-gray-300">{step.description}</p>
+                </div>
+                
+                {/* Connection line */}
+                {index < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gray-300"></div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+
+        </div>
+      </section>
+
+      {/* Introduction section - MOVED DOWN */}
+      <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-center">What is the AI Trolley Problem?</h2>
+            <h2 className="text-3xl font-bold mb-6 text-center">What is the AI Mortality Experiment?</h2>
             
             <div className="prose prose-lg max-w-none">
               <p>
@@ -121,46 +149,19 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-4xl text-center py-6">{example.image}</div>
-                  <Link to="/create-scenario" className="w-full">
+                  {/* <Link to="/create-scenario" className="w-full">
                     <Button variant="outline" className="w-full">Try This Scenario</Button>
-                  </Link>
+                  </Link> */}
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </section>
-
-      {/* How it works section */}
-      <section id="how-it-works" className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-12 text-center">How It Works</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((step, index) => (
-              <div key={index} className="relative">
-                <div className="bg-white rounded-lg p-6 shadow-md h-full">
-                  <div className="bg-trolley-blue text-white w-8 h-8 rounded-full flex items-center justify-center mb-4">
-                    {index + 1}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                  <p className="text-gray-600">{step.description}</p>
-                </div>
-                
-                {/* Connection line */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gray-300"></div>
-                )}
-              </div>
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
+        <div className="text-center mt-12">
             <Link to="/create-scenario">
-              <Button size="lg">Create Your Scenario</Button>
+              <Button size="lg">Create Your Own</Button>
             </Link>
           </div>
-        </div>
       </section>
     </div>
   );
