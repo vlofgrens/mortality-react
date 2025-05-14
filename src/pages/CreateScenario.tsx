@@ -612,126 +612,189 @@ const CreateScenario = () => {
     }
 
     setIsSubmitting(true);
-    const scenarioId = uuidv4();
+    const scenarioIdGlobal = uuidv4(); // Used for grouping results in context if needed
     const currentScenarioData: Scenario = {
-      id: scenarioId,
+      id: scenarioIdGlobal, // This ID is for the scenario instance itself
       humans: humans,
       animals: includeAnimals ? animals : [],
       timestamp: new Date().toISOString(),
     };
     console.log("[ handleSubmit ] currentScenarioData:", JSON.stringify(currentScenarioData, null, 2));
     
-    addScenario(currentScenarioData);
-    
-    const تحليلToastId = toast.loading("Analyzing ethical dilemma with AI models...", {
-      description: "This may take a moment. Please wait."
+    // Add the base scenario to context (optional, if you want to track scenarios separate from results)
+    // addScenario(currentScenarioData); 
+    // If addScenario was primarily for the results page to find the scenario, 
+    // we can pass currentScenarioData directly to the results page or fetch it by an ID.
+
+    const تحليلToastId = toast.loading("Starting AI ethics analysis across models...", {
+      description: "This may take several moments. Please wait."
     });
     console.log("[ handleSubmit ] Loading toast displayed.");
 
     const providers = ["openai", "anthropic", "gemini", "deepseek"];
-    const aiResponses: AIResponse[] = [];
+    const allAiResponses: AIResponse[] = [];
+    let allProcessedSuccessfully = true;
+
     console.log("[ handleSubmit ] Providers to query:", providers);
 
     try {
-      const responsesPromises = providers.map(async (providerKey) => {
-        const flaskApiUrl = '/api/run-scenario';
-        console.log(`[ handleSubmit ] Attempting to call ${providerKey} via ${flaskApiUrl}`);
-
+      for (const providerKey of providers) {
+        let scenario_hash_for_provider = ''; // To store the hash for the current provider
+        toast.info(`Processing with ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}...`, { id: تحليلToastId });
+        
         try {
-          const requestBody = {
-            scenario: currentScenarioData,
-            provider: providerKey,
-          };
-          // Log the request body being sent
-          console.log(`[ handleSubmit ] Request body for ${providerKey} (check details here):`, JSON.stringify(requestBody, null, 2));
-
-          const response = await fetch(flaskApiUrl, {
+          // Step 1: Initiate Processing
+          console.log(`[ handleSubmit ] Step 1: Initiating for ${providerKey}`);
+          const initiateResponse = await fetch('/api/scenario/initiate_processing', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              scenario: currentScenarioData, // Send the full scenario data each time
+              provider: providerKey 
+            }),
           });
+          const initiateData = await initiateResponse.json();
+          console.log(`[ handleSubmit ] Step 1 Response for ${providerKey}:`, initiateData);
 
-          console.log(`[ handleSubmit ] Response status from ${providerKey}: ${response.status} ${response.statusText}`);
-
-          if (!response.ok) {
-            let errorData = { message: "Unknown error communicating with backend" };
-            try {
-              errorData = await response.json();
-            } catch (jsonError) {
-              console.error(`[ handleSubmit ] Could not parse JSON error from ${providerKey}:`, jsonError);
-              errorData.message = response.statusText || "Failed to fetch from backend";
-            }
-            console.error(`[ handleSubmit ] Error from ${providerKey} (${response.status}):`, errorData);
-            toast.error(`Error from ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: ${errorData.message}`, { id: تحليلToastId });
-            return null;
+          if (!initiateResponse.ok) {
+            throw new Error(initiateData.error || `Failed to initiate processing for ${providerKey}`);
           }
 
-          const data = await response.json();
-          // Log the full data from run-scenario, expecting word_frequency AND philosophical_alignment
-          console.log(`[ handleSubmit ] Parsed JSON response from ${providerKey} (from /api/run-scenario):`, data); 
-          
+          scenario_hash_for_provider = initiateData.scenario_hash;
+          if (initiateData.status === 'complete') {
+            console.log(`[ handleSubmit ] Scenario already fully cached for ${providerKey} (hash: ${scenario_hash_for_provider}).`);
+            // The initiateData should be the full result if status is 'complete'
+            const aiResponse = {
+              modelId: providerKey, // Adjust if needed (e.g. gpt, claude)
+              decision: initiateData.decision_classification || "No decision found",
+              intermediate_reasoning: initiateData.intermediate_reasoning || "No intermediate reasoning",
+              reasoning: initiateData.response || "No final reasoning",
+              word_frequency: initiateData.word_frequency || [],
+              philosophical_alignment: initiateData.philosophical_alignment || "Unclear",
+            } as AIResponse;
+            allAiResponses.push(aiResponse);
+            toast.success(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Analysis retrieved from cache.`, { id: تحليلToastId });
+            continue; // Move to the next provider
+          }
+
+          if (initiateData.status !== 'reasoning_done') {
+            throw new Error(`Initiation for ${providerKey} did not complete reasoning. Status: ${initiateData.status}`);
+          }
+          toast.info(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Reasoning obtained. Getting decision...`, { id: تحليلToastId });
+
+          // Step 2: Get Decision
+          console.log(`[ handleSubmit ] Step 2: Getting decision for ${providerKey} (hash: ${scenario_hash_for_provider})`);
+          const decisionResponse = await fetch('/api/scenario/get_decision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
+          });
+          const decisionData = await decisionResponse.json();
+          console.log(`[ handleSubmit ] Step 2 Response for ${providerKey}:`, decisionData);
+
+          if (!decisionResponse.ok) {
+            throw new Error(decisionData.error || `Failed to get decision for ${providerKey}`);
+          }
+          if (decisionData.status === 'complete') {
+             console.log(`[ handleSubmit ] Scenario became fully cached for ${providerKey} during decision step.`);
+             const aiResponse = {
+                modelId: providerKey, 
+                decision: decisionData.decision_classification || "No decision found",
+                intermediate_reasoning: decisionData.intermediate_reasoning || "No intermediate reasoning",
+                reasoning: decisionData.response || "No final reasoning",
+                word_frequency: decisionData.word_frequency || [],
+                philosophical_alignment: decisionData.philosophical_alignment || "Unclear",
+            } as AIResponse;
+            allAiResponses.push(aiResponse);
+            toast.success(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Analysis retrieved from cache.`, { id: تحليلToastId });
+            continue; 
+          }
+          if (decisionData.status !== 'decision_done') {
+            throw new Error(`Decision step for ${providerKey} did not complete. Status: ${decisionData.status}`);
+          }
+          toast.info(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Decision obtained. Finalizing...`, { id: تحليلToastId });
+
+          // Step 3: Finalize and Get Result
+          console.log(`[ handleSubmit ] Step 3: Finalizing for ${providerKey} (hash: ${scenario_hash_for_provider})`);
+          const finalizeResponse = await fetch('/api/scenario/finalize_and_get_result', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
+          });
+          const finalizeData = await finalizeResponse.json();
+          console.log(`[ handleSubmit ] Step 3 Response for ${providerKey}:`, finalizeData);
+
+          if (!finalizeResponse.ok) {
+            throw new Error(finalizeData.error || `Failed to finalize analysis for ${providerKey}`);
+          }
+          if (finalizeData.status !== 'complete'){
+            throw new Error(`Finalization for ${providerKey} did not complete. Status: ${finalizeData.status}`);
+          }
+
+          // Map backend `finalizeData` to `AIResponse` structure
           let modelId = providerKey;
           if (providerKey === "openai") modelId = "gpt";
           if (providerKey === "anthropic") modelId = "claude";
 
           const aiResponse = {
             modelId: modelId,
-            decision: data.decision_classification || "No decision found", 
-            intermediate_reasoning: data.intermediate_reasoning || "No intermediate reasoning provided",
-            reasoning: data.response || "No final reasoning provided", // This is final_decision_text from backend
-            word_frequency: data.word_frequency || [], 
-            philosophical_alignment: data.philosophical_alignment || "Unclear" // Directly from /api/run-scenario
+            decision: finalizeData.decision_classification || "No decision found", 
+            intermediate_reasoning: finalizeData.intermediate_reasoning || "No intermediate reasoning provided",
+            reasoning: finalizeData.response || "No final reasoning provided", // 'response' from backend is final_decision_text
+            word_frequency: finalizeData.word_frequency || [], 
+            philosophical_alignment: finalizeData.philosophical_alignment || "Unclear"
           } as AIResponse;
-          // Log the fully populated AIResponse object
-          console.log(`[ handleSubmit ] Formatted AIResponse for ${providerKey} (should have philosophy and word_frequency):`, aiResponse);
-          return aiResponse; // This response should now be complete
+          allAiResponses.push(aiResponse);
+          toast.success(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Analysis complete!`, { id: تحليلToastId });
 
-        } catch (error) {
-          console.error(`[ handleSubmit ] Network or other error calling ${providerKey}:`, error);
-          toast.error(`Failed to get response from ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}. Check console.`, { id: تحليلToastId });
-          return null;
+        } catch (error: any) {
+          console.error(`[ handleSubmit ] Error processing provider ${providerKey}:`, error);
+          toast.error(`Error with ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: ${error.message}`, { id: تحليلToastId });
+          allProcessedSuccessfully = false;
+          // Optionally, decide if you want to continue with other providers or stop all
         }
-      });
+      }
 
-      const resolvedResponses = await Promise.all(responsesPromises);
-      console.log("[ handleSubmit ] resolvedResponses from Promise.all (each should be complete from /api/run-scenario):", resolvedResponses);
+      console.log("[ handleSubmit ] All providers processed. Final aiResponses array:", allAiResponses);
 
-      // The loop for fetching philosophical alignment separately is no longer needed.
-      // const finalAiResponses: AIResponse[] = [];
-      // for (const res of resolvedResponses) { ... }
-
-      // Filter out any null responses that might have occurred due to errors for a specific provider
-      const finalAiResponses = resolvedResponses.filter(res => res !== null) as AIResponse[];
-
-      console.log("[ handleSubmit ] Final aiResponses array (before addResult):", finalAiResponses);
-
-      if (finalAiResponses.length === 0 && providers.length > 0) {
+      if (allAiResponses.length === 0 && providers.length > 0) {
         toast.error("Failed to get responses from any AI model. See console for details.", { id: تحليلToastId });
         console.error("[ handleSubmit ] No successful AI responses received.");
+        setIsSubmitting(false);
         return;
       }
       
+      // This scenarioId (scenarioIdGlobal) is used to link the set of responses on the results page.
+      // The scenario data itself (currentScenarioData) is part of each AI's result from backend if needed by results page.
+      // Or, more simply, pass currentScenarioData directly to the results page via context/state if needed there.
+      addScenario(currentScenarioData); // Add the scenario data to context. It includes scenarioIdGlobal.
+
       const resultPayload = {
-        id: uuidv4(),
-        scenarioId, 
-        responses: finalAiResponses,
+        id: uuidv4(), // Unique ID for this specific set of results/run
+        scenarioId: scenarioIdGlobal, // Link to the scenario details in context
+        responses: allAiResponses,
       };
       console.log("[ handleSubmit ] resultPayload for context:", resultPayload);
       
       addResult(resultPayload);
       
-      toast.success("AI Ethics Analysis Complete!", {
-        id: تحليلToastId,
-        description: "View the results on the next page."
-      });
+      if (allProcessedSuccessfully) {
+        toast.success("AI Ethics Analysis Complete!", {
+          id: تحليلToastId,
+          description: "View the results on the next page."
+        });
+      } else {
+        toast.warning("AI Ethics Analysis completed with some errors.", {
+          id: تحليلToastId,
+          description: "Some models may not have results. View details on the next page."
+        });
+      }
       console.log("[ handleSubmit ] Analysis complete, navigating...");
       
       localStorage.removeItem('scenarioState');
-      navigate(`/results/${scenarioId}`);
+      navigate(`/results/${scenarioIdGlobal}`);
 
-    } catch (error) {
+    } catch (error) { // Catch errors from the overall loop structure if any
       console.error("[ handleSubmit ] Unexpected error during AI analysis submission:", error);
       toast.error("An unexpected error occurred. Check console for details.", { id: تحليلToastId });
     } finally {
