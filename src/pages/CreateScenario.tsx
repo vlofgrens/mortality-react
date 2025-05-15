@@ -625,7 +625,7 @@ const CreateScenario = () => {
     // addScenario(currentScenarioData); 
     // If addScenario was primarily for the results page to find the scenario, 
     // we can pass currentScenarioData directly to the results page or fetch it by an ID.
-
+    
     const تحليلToastId = toast.loading("Starting AI ethics analysis across models...", {
       description: "This may take several moments. Please wait."
     });
@@ -694,7 +694,7 @@ const CreateScenario = () => {
 
           if (!decisionResponse.ok) {
             throw new Error(decisionData.error || `Failed to get decision for ${providerKey}`);
-          }
+            }
           if (decisionData.status === 'complete') {
              console.log(`[ handleSubmit ] Scenario became fully cached for ${providerKey} during decision step.`);
              const aiResponse = {
@@ -768,7 +768,7 @@ const CreateScenario = () => {
       // The scenario data itself (currentScenarioData) is part of each AI's result from backend if needed by results page.
       // Or, more simply, pass currentScenarioData directly to the results page via context/state if needed there.
       addScenario(currentScenarioData); // Add the scenario data to context. It includes scenarioIdGlobal.
-
+      
       const resultPayload = {
         id: uuidv4(), // Unique ID for this specific set of results/run
         scenarioId: scenarioIdGlobal, // Link to the scenario details in context
@@ -779,10 +779,10 @@ const CreateScenario = () => {
       addResult(resultPayload);
       
       if (allProcessedSuccessfully) {
-        toast.success("AI Ethics Analysis Complete!", {
-          id: تحليلToastId,
-          description: "View the results on the next page."
-        });
+      toast.success("AI Ethics Analysis Complete!", {
+        id: تحليلToastId,
+        description: "View the results on the next page."
+      });
       } else {
         toast.warning("AI Ethics Analysis completed with some errors.", {
           id: تحليلToastId,
