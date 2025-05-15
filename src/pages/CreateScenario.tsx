@@ -645,7 +645,7 @@ const CreateScenario = () => {
         try {
           // Step 1: Initiate Processing
           console.log(`[ handleSubmit ] Step 1: Initiating for ${providerKey}`);
-          const initiateResponse = await fetch('/api/scenario/initiate_processing', {
+          const initiateResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/initiate_processing', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -684,7 +684,7 @@ const CreateScenario = () => {
 
           // Step 2: Get Decision
           console.log(`[ handleSubmit ] Step 2: Getting decision for ${providerKey} (hash: ${scenario_hash_for_provider})`);
-          const decisionResponse = await fetch('/api/scenario/get_decision', {
+          const decisionResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/get_decision', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
@@ -716,7 +716,7 @@ const CreateScenario = () => {
 
           // Step 3: Finalize and Get Result
           console.log(`[ handleSubmit ] Step 3: Finalizing for ${providerKey} (hash: ${scenario_hash_for_provider})`);
-          const finalizeResponse = await fetch('/api/scenario/finalize_and_get_result', {
+          const finalizeResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/finalize_and_get_result', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),

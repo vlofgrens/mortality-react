@@ -109,7 +109,7 @@ const ModelAlignmentReport = () => {
       try {
         setIsLoading(true);
         // Fetching from the Flask API endpoint
-        const response = await fetch('/api/alignment-report-data'); 
+        const response = await fetch('https://mortality-flask.onrender.com/api/alignment-report-data'); 
         if (!response.ok) {
           // Try to get error message from backend if available
           let errorMsg = `HTTP error! status: ${response.status}`;
