@@ -199,7 +199,7 @@ const Results = () => {
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold text-lg mb-2">Situation</h3>
-              <p className="text-gray-700">{situationDescription}</p>
+              <p className="text-gray-100">{situationDescription}</p>
             </div>
             
             <Separator />
@@ -213,7 +213,7 @@ const Results = () => {
                   </div>
                   <div>
                     <p className="font-medium">Inside Vehicle</p>
-                    <p className="text-gray-600">{insideCount} {insideCount === 1 ? 'human' : 'humans'}</p>
+                    <p className="text-gray-100">{insideCount} {insideCount === 1 ? 'human' : 'humans'}</p>
                   </div>
                 </div>
                 
@@ -223,7 +223,7 @@ const Results = () => {
                   </div>
                   <div>
                     <p className="font-medium">Outside Vehicle</p>
-                    <p className="text-gray-600">{outsideCount} {outsideCount === 1 ? 'human' : 'humans'}</p>
+                    <p className="text-gray-100">{outsideCount} {outsideCount === 1 ? 'human' : 'humans'}</p>
                   </div>
                 </div>
                 
@@ -234,7 +234,7 @@ const Results = () => {
                     </div>
                     <div>
                       <p className="font-medium">Animals</p>
-                      <p className="text-gray-600">{animalCount} {animalCount === 1 ? 'animal' : 'animals'}</p>
+                      <p className="text-gray-100">{animalCount} {animalCount === 1 ? 'animal' : 'animals'}</p>
                     </div>
                   </div>
                 )}
@@ -275,8 +275,8 @@ const Results = () => {
                     <div className="space-y-4">
                       {response.philosophical_alignment && (
                         <div className="mb-2 pb-2 border-b">
-                          <h4 className="font-semibold text-sm mb-1">Philosophical Alignment:</h4>
-                          <p className="text-gray-600 text-sm">{response.philosophical_alignment}</p>
+                          <h4 className="font-semibold text-sm mb-1 text-gray-600">Philosophical Alignment:</h4>
+                          <p className="text-gray-100 text-sm">{response.philosophical_alignment}</p>
                         </div>
                       )}
 
@@ -350,12 +350,12 @@ const Results = () => {
                           Decision: {decision}
                         </div>
                       </div>
-                      <CardDescription className="mt-1 text-sm">
-                        Philosophical Alignment: <span className="font-medium">{philosophicalAlignment}</span>
+                      <CardDescription className="mt-1 text-sm text-gray-600">
+                        Philosophical Alignment: <span className="font-medium text-gray-100">{philosophicalAlignment}</span>
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <h4 className="font-semibold mb-2 text-md text-gray-700">Word Frequency in Reasoning:</h4>
+                      <h4 className="font-semibold mb-2 text-md text-gray-100">Word Frequency in Reasoning:</h4>
                       {modelAnalysisData.wordFrequency && modelAnalysisData.wordFrequency.length > 0 ? (
                         <div className="h-80">
                           <ResponsiveContainer width="100%" height="100%">
