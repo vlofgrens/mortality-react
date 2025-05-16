@@ -405,55 +405,55 @@ const CreateScenario = () => {
   ]);
 
   // Try to load saved state on mount
-  useEffect(() => {
-    const savedState = localStorage.getItem('scenarioState');
+  // useEffect(() => {
+  //   const savedState = localStorage.getItem('scenarioState');
     
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
+  //   if (savedState) {
+  //     try {
+  //       const state = JSON.parse(savedState);
         
-        if (state && typeof state.currentStep === 'number') {
-          setCurrentStep(state.currentStep || 1);
-          setHumanCount(state.humanCount !== undefined ? state.humanCount : 1);
-          setSameHumanCharacteristics(state.sameHumanCharacteristics !== undefined ? state.sameHumanCharacteristics : true);
-          setHumans(state.humans && state.humans.length > 0 ? state.humans.map((h: Human) => ({ 
-            ...h, 
-            relationship: 'undefined'
-          })) : [
-            {
-              id: uuidv4(),
-              relationship: 'undefined',
-              age: 'undefined',
-              gender: 'undefined',
-              fitness: 'undefined',
-              socialValue: 'undefined',
-              legalStatus: 'undefined',
-              details: '',
-            } as Human,
-          ]);
-          setIncludeAnimals(state.includeAnimals || false);
-          setAnimalCount(state.animalCount || 1);
-          setSameAnimalSpecies(state.sameAnimalSpecies !== undefined ? state.sameAnimalSpecies : true);
-          setAnimals(state.animals || []);
+  //       if (state && typeof state.currentStep === 'number') {
+  //         setCurrentStep(state.currentStep || 1);
+  //         setHumanCount(state.humanCount !== undefined ? state.humanCount : 1);
+  //         setSameHumanCharacteristics(state.sameHumanCharacteristics !== undefined ? state.sameHumanCharacteristics : true);
+  //         setHumans(state.humans && state.humans.length > 0 ? state.humans.map((h: Human) => ({ 
+  //           ...h, 
+  //           relationship: 'undefined'
+  //         })) : [
+  //           {
+  //             id: uuidv4(),
+  //             relationship: 'undefined',
+  //             age: 'undefined',
+  //             gender: 'undefined',
+  //             fitness: 'undefined',
+  //             socialValue: 'undefined',
+  //             legalStatus: 'undefined',
+  //             details: '',
+  //           } as Human,
+  //         ]);
+  //         setIncludeAnimals(state.includeAnimals || false);
+  //         setAnimalCount(state.animalCount || 1);
+  //         setSameAnimalSpecies(state.sameAnimalSpecies !== undefined ? state.sameAnimalSpecies : true);
+  //         setAnimals(state.animals || []);
           
-          if (state.humans && state.humans.length > 0) {
-            toast.info("Your draft scenario has been restored", {
-              description: "You can continue where you left off",
-              action: {
-                label: "Clear",
-                onClick: () => {
-                  localStorage.removeItem('scenarioState');
-                  window.location.reload();
-                }
-              }
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error restoring scenario state", error);
-      }
-    }
-  }, []);
+  //         if (state.humans && state.humans.length > 0) {
+  //           toast.info("Your draft scenario has been restored", {
+  //             description: "You can continue where you left off",
+  //             action: {
+  //               label: "Clear",
+  //               onClick: () => {
+  //                 localStorage.removeItem('scenarioState');
+  //                 window.location.reload();
+  //               }
+  //             }
+  //           });
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Error restoring scenario state", error);
+  //     }
+  //   }
+  // }, []);
 
   // Handle humans update
   const updateHuman = (index: number, field: keyof Human, value: any) => {
