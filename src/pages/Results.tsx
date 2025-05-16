@@ -53,7 +53,7 @@ const Results = () => {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center">
         <h1 className="text-3xl font-bold mb-6">Scenario Not Found</h1>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-lg text-gray-100 mb-8">
           The scenario you're looking for doesn't exist or has been deleted.
         </p>
         <Button onClick={() => navigate('/create-scenario')}>
@@ -209,7 +209,7 @@ const Results = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-gray-100 p-2 rounded-full">
-                    <Car size={20} className="text-gray-600" />
+                    <Car size={20} className="text-gray-100" />
                   </div>
                   <div>
                     <p className="font-medium">Inside Vehicle</p>
@@ -219,7 +219,7 @@ const Results = () => {
                 
                 <div className="flex items-center gap-3">
                   <div className="bg-gray-100 p-2 rounded-full">
-                    <User size={20} className="text-gray-600" />
+                    <User size={20} className="text-gray-100" />
                   </div>
                   <div>
                     <p className="font-medium">Outside Vehicle</p>
@@ -266,7 +266,7 @@ const Results = () => {
                     <div className={`text-xs sm:text-sm font-semibold px-2 py-1 rounded-full ${
                       response.decision === 'Save Self' ? 'bg-red-100 text-red-700' :
                       response.decision === 'Save Others' ? 'bg-green-100 text-green-700' :
-                      'bg-gray-100 text-gray-700'
+                      'bg-gray-100 text-gray-200'
                     }`}>
                       {response.decision}
                     </div>
@@ -275,7 +275,7 @@ const Results = () => {
                     <div className="space-y-4">
                       {response.philosophical_alignment && (
                         <div className="mb-2 pb-2 border-b">
-                          <h4 className="font-semibold text-sm mb-1 text-gray-600">Philosophical Alignment:</h4>
+                          <h4 className="font-semibold text-sm mb-1 text-gray-300">Philosophical Alignment:</h4>
                           <p className="text-gray-100 text-sm">{response.philosophical_alignment}</p>
                         </div>
                       )}
@@ -287,7 +287,7 @@ const Results = () => {
                             <h4 className="font-semibold">Final Response</h4>
                           </AccordionTrigger>
                           <AccordionContent>
-                            <div className="text-gray-700 whitespace-pre-line">
+                            <div className="text-gray-200 whitespace-pre-line">
                               {response.reasoning}
                             </div>
                           </AccordionContent>
@@ -301,7 +301,7 @@ const Results = () => {
                             <h4 className="font-semibold">Moral Reasoning</h4>
                           </AccordionTrigger>
                           <AccordionContent>
-                            <div className="text-gray-700 whitespace-pre-line">
+                            <div className="text-gray-200 whitespace-pre-line">
                               {response.intermediate_reasoning}
                             </div>
                           </AccordionContent>
@@ -345,12 +345,12 @@ const Results = () => {
                         <div className={`text-xs sm:text-sm font-semibold px-3 py-1 rounded-full self-start sm:self-center ${
                           decision === 'Save Self' ? 'bg-red-100 text-red-700' :
                           decision === 'Save Others' ? 'bg-green-100 text-green-700' :
-                          'bg-gray-100 text-gray-700'
+                          'bg-gray-100 text-gray-200'
                         }`}>
                           Decision: {decision}
                         </div>
                       </div>
-                      <CardDescription className="mt-1 text-sm text-gray-600">
+                      <CardDescription className="mt-1 text-sm text-gray-100">
                         Philosophical Alignment: <span className="font-medium text-gray-100">{philosophicalAlignment}</span>
                       </CardDescription>
                     </CardHeader>
