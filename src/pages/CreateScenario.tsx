@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useScenario } from '@/context/ScenarioContext';
@@ -70,7 +70,21 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
       <div className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <Label className="mb-1.5 block">Age Group</Label>
+            <Label className="mb-1.5 block">
+              Age Group
+              <span 
+                className="ml-1 inline-block cursor-help text-gray-100"
+                onMouseEnter={() => setShowTooltip('age')}
+                onMouseLeave={() => setShowTooltip(null)}
+              >
+                <HelpCircle size={14} />
+                {showTooltip === 'age' && (
+                  <div className="absolute z-50 p-3 bg-black text-white text-sm rounded shadow-lg max-w-sm">
+                    The general age category of the human.
+                  </div>
+                )}
+              </span>
+            </Label>
             <Select 
               value={human.age} 
               onValueChange={(value: "child" | "adult" | "elderly" | "undefined") => updateHuman(index, 'age', value)}
@@ -88,7 +102,21 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
           </div>
 
           <div>
-            <Label className="mb-1.5 block">Gender</Label>
+            <Label className="mb-1.5 block">
+              Gender
+              <span 
+                className="ml-1 inline-block cursor-help text-gray-100"
+                onMouseEnter={() => setShowTooltip('gender')}
+                onMouseLeave={() => setShowTooltip(null)}
+              >
+                <HelpCircle size={14} />
+                {showTooltip === 'gender' && (
+                  <div className="absolute z-50 p-3 bg-black text-white text-sm rounded shadow-lg max-w-sm">
+                    The gender identity of the human.
+                  </div>
+                )}
+              </span>
+            </Label>
             <Select 
               value={human.gender} 
               onValueChange={(value: "male" | "female" | "undefined") => updateHuman(index, 'gender', value)}
@@ -106,7 +134,21 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
         </div>
 
         <div>
-          <Label className="mb-1.5 block">Fitness Level</Label>
+          <Label className="mb-1.5 block">
+            Fitness Level
+            <span 
+              className="ml-1 inline-block cursor-help text-gray-100"
+              onMouseEnter={() => setShowTooltip('fitness')}
+              onMouseLeave={() => setShowTooltip(null)}
+            >
+              <HelpCircle size={14} />
+              {showTooltip === 'fitness' && (
+                <div className="absolute z-50 p-3 bg-black text-white text-sm rounded shadow-lg max-w-sm">
+                  The physical condition of the human.
+                </div>
+              )}
+            </span>
+          </Label>
           <Select 
             value={human.fitness}
             onValueChange={(value: "obese and ugly" | "fit and beautiful" | "undefined") => updateHuman(index, 'fitness', value)}
@@ -127,14 +169,14 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
             <Label className="mb-1.5 block">
               Social Value
               <span 
-                className="ml-1 inline-block cursor-help text-gray-500"
+                className="ml-1 inline-block cursor-help text-gray-100"
                 onMouseEnter={() => setShowTooltip('social')}
                 onMouseLeave={() => setShowTooltip(null)}
               >
                 <HelpCircle size={14} />
                 {showTooltip === 'social' && (
-                  <div className="absolute z-50 p-2 bg-black text-white text-xs rounded shadow-lg max-w-xs">
-                    How society might perceive this individual's contribution
+                  <div className="absolute z-50 p-3 bg-black text-white text-sm rounded shadow-lg max-w-sm">
+                    How society might perceive this individual's contribution in an utilitarian framework, used to measure the model's utilitarian proclivities
                   </div>
                 )}
               </span>
@@ -155,7 +197,21 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
           </div>
 
           <div>
-            <Label className="mb-1.5 block">Legal Status</Label>
+            <Label className="mb-1.5 block">
+              Legal Status
+              <span 
+                className="ml-1 inline-block cursor-help text-gray-100"
+                onMouseEnter={() => setShowTooltip('legal')}
+                onMouseLeave={() => setShowTooltip(null)}
+              >
+                <HelpCircle size={14} />
+                {showTooltip === 'legal' && (
+                  <div className="absolute z-50 p-3 bg-black text-white text-sm rounded shadow-lg max-w-sm">
+                    The human's standing in relation to the law.
+                  </div>
+                )}
+              </span>
+            </Label>
             <Select 
               value={human.legalStatus} 
               onValueChange={(value: "law-abiding" | "criminal" | "undefined") => updateHuman(index, 'legalStatus', value)}
@@ -173,7 +229,21 @@ const HumanConfig = React.memo(({ index, human, updateHuman, showTooltip, setSho
         </div>
 
         <div>
-          <Label className="mb-1.5 block">Additional Details</Label>
+          <Label className="mb-1.5 block">
+            Additional Details
+            <span 
+              className="ml-1 inline-block cursor-help text-gray-100"
+              onMouseEnter={() => setShowTooltip('details')}
+              onMouseLeave={() => setShowTooltip(null)}
+            >
+              <HelpCircle size={14} />
+              {showTooltip === 'details' && (
+                <div className="absolute z-50 p-3 bg-black text-white text-sm rounded shadow-lg max-w-sm">
+                  Any other relevant information or characteristics about the human. Be creative!
+                </div>
+              )}
+            </span>
+          </Label>
           <Textarea 
             placeholder="Any specific characteristics about this person..."
             value={human.details || ''}
@@ -306,6 +376,50 @@ const AnimalConfig = React.memo(({ index, animal, updateAnimal }: AnimalConfigPr
 AnimalConfig.displayName = 'AnimalConfig';
 // --- End Animal Config Component ---
 
+// --- Provider Progress Display Component ---
+interface ProviderProgressState {
+  status: 'pending' | 'reasoning' | 'decision' | 'complete' | 'error' | 'cached';
+  message: string;
+  progressValue: number; // 0-100
+}
+
+const ProviderProgressDisplay = React.memo(({ providerKey, progress }: { providerKey: string; progress: ProviderProgressState }) => {
+  const providerName = providerKey.charAt(0).toUpperCase() + providerKey.slice(1);
+
+  let barColor = 'bg-blue-500'; // Default for in-progress
+  if (progress.status === 'complete' || progress.status === 'cached') {
+    barColor = 'bg-green-500';
+  } else if (progress.status === 'error') {
+    barColor = 'bg-red-500';
+  } else if (progress.status === 'pending') {
+    barColor = 'bg-gray-300';
+  }
+
+  return (
+    <div className="mb-3 p-3 border rounded-md bg-muted/30 animate-fade-in">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-sm font-medium text-foreground">{providerName}</span>
+        <span className={`text-xs px-2 py-0.5 rounded-full ${
+          progress.status === 'complete' || progress.status === 'cached' ? 'bg-green-100 text-green-700' :
+          progress.status === 'error' ? 'bg-red-100 text-red-700' :
+          progress.status === 'pending' ? 'bg-gray-100 text-gray-600' :
+          'bg-blue-100 text-blue-700' // reasoning, decision
+        }`}>
+          {progress.message}
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+        <div 
+          className={`h-2 rounded-full transition-all duration-500 ease-out ${barColor}`} 
+          style={{ width: `${progress.progressValue}%` }}
+        />
+      </div>
+    </div>
+  );
+});
+ProviderProgressDisplay.displayName = 'ProviderProgressDisplay';
+// --- End Provider Progress Display Component ---
+
 const CreateScenario = () => {
   const navigate = useNavigate();
   const { addScenario, addResult } = useScenario();
@@ -348,6 +462,12 @@ const CreateScenario = () => {
       details: '',
     },
   ]);
+
+  // Provider Progress State
+  const backendProviders = ["openai", "anthropic", "gemini", "deepseek"]; // Keep this for iteration
+  const [providerProgress, setProviderProgress] = useState<Record<string, ProviderProgressState>>(
+    Object.fromEntries(backendProviders.map(p => [p, { status: 'pending', message: 'Queued', progressValue: 0 }]))
+  );
 
   // Function to handle changes in human count
   const handleHumanCountChange = (newCount: number) => {
@@ -612,7 +732,14 @@ const CreateScenario = () => {
     }
 
     setIsSubmitting(true);
-    const scenarioIdGlobal = uuidv4(); // Used for grouping results in context if needed
+    // Initialize/Reset progress for all providers
+    const initialProgress = Object.fromEntries(
+      backendProviders.map(p => [p, { status: 'pending', message: 'Queued', progressValue: 0 }])
+    );
+    setProviderProgress(initialProgress);
+    setCurrentStep(3); // Ensure user is on the review step to see progress
+
+    const scenarioIdGlobal = uuidv4();
     const currentScenarioData: Scenario = {
       id: scenarioIdGlobal, // This ID is for the scenario instance itself
       humans: humans,
@@ -631,20 +758,34 @@ const CreateScenario = () => {
     });
     console.log("[ handleSubmit ] Loading toast displayed.");
 
-    const providers = ["openai", "anthropic", "gemini", "deepseek"];
     const allAiResponses: AIResponse[] = [];
     let allProcessedSuccessfully = true;
 
-    console.log("[ handleSubmit ] Providers to query:", providers);
+    console.log("[ handleSubmit ] Providers to query:", backendProviders);
 
     try {
-      for (const providerKey of providers) {
-        let scenario_hash_for_provider = ''; // To store the hash for the current provider
-        toast.info(`Processing with ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}...`, { id: تحليلToastId });
+      for (const providerKey of backendProviders) {
+        let scenario_hash_for_provider = ''; 
+        const providerKeyCaps = providerKey.charAt(0).toUpperCase() + providerKey.slice(1);
+        
+        setProviderProgress(prev => {
+          const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+          return {
+            ...prev,
+            [providerKey]: { ...currentProviderState, status: 'reasoning', message: '1/3: Initiating...', progressValue: 10 }
+          };
+        });
         
         try {
           // Step 1: Initiate Processing
           console.log(`[ handleSubmit ] Step 1: Initiating for ${providerKey}`);
+          setProviderProgress(prev => {
+            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            return {
+              ...prev,
+              [providerKey]: { ...currentProviderState, status: 'reasoning', message: '1/3: Starting Reasoning...', progressValue: 25 }
+            };
+          });
           const initiateResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/initiate_processing', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -673,14 +814,26 @@ const CreateScenario = () => {
               philosophical_alignment: initiateData.philosophical_alignment || "Unclear",
             } as AIResponse;
             allAiResponses.push(aiResponse);
-            toast.success(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Analysis retrieved from cache.`, { id: تحليلToastId });
+            setProviderProgress(prev => {
+              const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+              return {
+                ...prev,
+                [providerKey]: { ...currentProviderState, status: 'cached', message: 'Complete (Cached)', progressValue: 100 }
+              };
+            });
             continue; // Move to the next provider
           }
 
           if (initiateData.status !== 'reasoning_done') {
             throw new Error(`Initiation for ${providerKey} did not complete reasoning. Status: ${initiateData.status}`);
           }
-          toast.info(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Reasoning obtained. Getting decision...`, { id: تحليلToastId });
+          setProviderProgress(prev => {
+            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            return {
+              ...prev,
+              [providerKey]: { ...currentProviderState, status: 'decision', message: '2/3: Making Decision...', progressValue: 50 }
+            };
+          });
 
           // Step 2: Get Decision
           console.log(`[ handleSubmit ] Step 2: Getting decision for ${providerKey} (hash: ${scenario_hash_for_provider})`);
@@ -706,13 +859,25 @@ const CreateScenario = () => {
                 philosophical_alignment: decisionData.philosophical_alignment || "Unclear",
             } as AIResponse;
             allAiResponses.push(aiResponse);
-            toast.success(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Analysis retrieved from cache.`, { id: تحليلToastId });
+            setProviderProgress(prev => {
+              const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+              return {
+                ...prev,
+                [providerKey]: { ...currentProviderState, status: 'cached', message: 'Complete (Cached)', progressValue: 100 }
+              };
+            });
             continue; 
           }
           if (decisionData.status !== 'decision_done') {
             throw new Error(`Decision step for ${providerKey} did not complete. Status: ${decisionData.status}`);
           }
-          toast.info(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Decision obtained. Finalizing...`, { id: تحليلToastId });
+          setProviderProgress(prev => {
+            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            return {
+              ...prev,
+              [providerKey]: { ...currentProviderState, status: 'decision', message: '3/3: Finalizing...', progressValue: 75 }
+            };
+          });
 
           // Step 3: Finalize and Get Result
           console.log(`[ handleSubmit ] Step 3: Finalizing for ${providerKey} (hash: ${scenario_hash_for_provider})`);
@@ -745,19 +910,36 @@ const CreateScenario = () => {
             philosophical_alignment: finalizeData.philosophical_alignment || "Unclear"
           } as AIResponse;
           allAiResponses.push(aiResponse);
-          toast.success(`${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: Analysis complete!`, { id: تحليلToastId });
+          setProviderProgress(prev => {
+            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            return {
+              ...prev,
+              [providerKey]: { ...currentProviderState, status: 'complete', message: 'Complete!', progressValue: 100 }
+            };
+          });
 
         } catch (error: any) {
           console.error(`[ handleSubmit ] Error processing provider ${providerKey}:`, error);
-          toast.error(`Error with ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}: ${error.message}`, { id: تحليلToastId });
+          toast.error(`Error with ${providerKeyCaps}: ${error.message.substring(0, 100)}${error.message.length > 100 ? '...' : ''}`, { id: تحليلToastId });
           allProcessedSuccessfully = false;
-          // Optionally, decide if you want to continue with other providers or stop all
+          setProviderProgress(prev => {
+            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            return {
+              ...prev,
+              [providerKey]: { 
+                ...currentProviderState,
+                status: 'error', 
+                message: 'Error',
+                progressValue: currentProviderState.progressValue // Keep last progress value on error
+              }
+            };
+          });
         }
       }
 
       console.log("[ handleSubmit ] All providers processed. Final aiResponses array:", allAiResponses);
 
-      if (allAiResponses.length === 0 && providers.length > 0) {
+      if (allAiResponses.length === 0 && backendProviders.length > 0) {
         toast.error("Failed to get responses from any AI model. See console for details.", { id: تحليلToastId });
         console.error("[ handleSubmit ] No successful AI responses received.");
         setIsSubmitting(false);
@@ -904,7 +1086,7 @@ const CreateScenario = () => {
           <Card>
             <CardHeader>
               <CardTitle>Human Configuration</CardTitle>
-              <CardDescription>Define the humans involved in the scenario.</CardDescription>
+              <CardDescription>Choose characteristics for each human, explanations available on hover.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center space-x-2">
@@ -1065,11 +1247,26 @@ const CreateScenario = () => {
               
               <Separator />
 
-              <ScenarioPreview
-                humans={humans}
-                animals={animals}
-                includeAnimals={includeAnimals}
-              />
+              {isSubmitting && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-3 text-center">AI Analysis Progress:</h3>
+                  {backendProviders.map(providerKey => (
+                    <ProviderProgressDisplay 
+                      key={providerKey} 
+                      providerKey={providerKey} 
+                      progress={providerProgress[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 }} 
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {!isSubmitting && (
+                <ScenarioPreview
+                  humans={humans}
+                  animals={animals}
+                  includeAnimals={includeAnimals}
+                />
+              )}
             </CardContent>
           </Card>
         );
@@ -1152,11 +1349,13 @@ const CreateScenario = () => {
         
         <div className="lg:col-span-1">
           <div className="sticky top-4 space-y-4">
-            <ScenarioPreview 
-              humans={humans} 
-              animals={animals} 
-              includeAnimals={includeAnimals} 
-            />
+            {!isSubmitting && ( // Hide preview during submission if progress bars are shown in main panel
+                <ScenarioPreview 
+                humans={humans} 
+                animals={animals} 
+                includeAnimals={includeAnimals} 
+                />
+            )}
           </div>
         </div>
       </div>
