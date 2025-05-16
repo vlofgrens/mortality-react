@@ -381,9 +381,20 @@ interface ProviderProgressState {
   status: 'pending' | 'reasoning' | 'decision' | 'complete' | 'error' | 'cached';
   message: string;
   progressValue: number; // 0-100
+  finalResponse?: string;
+  isExpanded?: boolean;
+  decision?: string; // To store decision like 'Save Self', 'Save Others'
 }
 
-const ProviderProgressDisplay = React.memo(({ providerKey, progress }: { providerKey: string; progress: ProviderProgressState }) => {
+const ProviderProgressDisplay = React.memo(({ 
+  providerKey, 
+  progress,
+  toggleExpansion 
+}: { 
+  providerKey: string; 
+  progress: ProviderProgressState;
+  toggleExpansion: () => void;
+}) => {
   const providerName = providerKey.charAt(0).toUpperCase() + providerKey.slice(1);
 
   let barColor = 'bg-blue-500'; // Default for in-progress
@@ -414,6 +425,30 @@ const ProviderProgressDisplay = React.memo(({ providerKey, progress }: { provide
           style={{ width: `${progress.progressValue}%` }}
         />
       </div>
+      {progress.finalResponse && (
+        <div className="mt-2">
+          <Button 
+            onClick={toggleExpansion} 
+            className={(() => {
+              const baseClasses = "border rounded-md px-3 py-1.5 text-sm font-medium";
+              if (progress.decision === 'Save Others') {
+                return `bg-green-100 text-green-700 border-green-300 hover:bg-green-200 ${baseClasses}`;
+              } else if (progress.decision === 'Save Self') {
+                return `bg-red-100 text-red-700 border-red-300 hover:bg-red-200 ${baseClasses}`;
+              }
+              // Default to deep forest green if decision is not standard or for error messages shown in finalResponse
+              return `bg-green-700 text-white hover:bg-green-800 border-green-700 ${baseClasses}`;
+            })()}
+          >
+            {progress.isExpanded ? 'Hide Response' : 'Show Response'}
+          </Button>
+          {progress.isExpanded && (
+            <div className="mt-1 p-2.5 border bg-background rounded-md text-xs max-h-40 overflow-y-auto pretty-scrollbar">
+              <pre className="whitespace-pre-wrap font-sans text-base">{progress.finalResponse}</pre>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 });
@@ -466,8 +501,34 @@ const CreateScenario = () => {
   // Provider Progress State
   const backendProviders = ["openai", "anthropic", "gemini", "deepseek"]; // Keep this for iteration
   const [providerProgress, setProviderProgress] = useState<Record<string, ProviderProgressState>>(
-    Object.fromEntries(backendProviders.map(p => [p, { status: 'pending', message: 'Queued', progressValue: 0 }]))
+    Object.fromEntries(
+      backendProviders.map((p): [string, ProviderProgressState] => [
+        p, 
+        { 
+          status: 'pending', 
+          message: 'Queued', 
+          progressValue: 0, 
+          isExpanded: false, 
+          finalResponse: undefined,
+          decision: undefined,
+        }
+      ])
+    )
   );
+
+  const toggleProviderResponseExpansion = useCallback((providerKey: string) => {
+    setProviderProgress(prev => {
+      const targetProviderState = prev[providerKey];
+      if (!targetProviderState) return prev;
+      return {
+        ...prev,
+        [providerKey]: {
+          ...targetProviderState,
+          isExpanded: !targetProviderState.isExpanded,
+        }
+      };
+    });
+  }, []); // Empty dependency array as setProviderProgress updater form is stable
 
   // Function to handle changes in human count
   const handleHumanCountChange = (newCount: number) => {
@@ -733,10 +794,20 @@ const CreateScenario = () => {
 
     setIsSubmitting(true);
     // Initialize/Reset progress for all providers
-    const initialProgress = Object.fromEntries(
-      backendProviders.map(p => [p, { status: 'pending', message: 'Queued', progressValue: 0 }])
+    const initialProgressState: Record<string, ProviderProgressState> = Object.fromEntries(
+      backendProviders.map((p): [string, ProviderProgressState] => [
+        p, 
+        { 
+          status: 'pending', 
+          message: 'Queued', 
+          progressValue: 0, 
+          isExpanded: false, 
+          finalResponse: undefined,
+          decision: undefined,
+        }
+      ])
     );
-    setProviderProgress(initialProgress);
+    setProviderProgress(initialProgressState);
     setCurrentStep(3); // Ensure user is on the review step to see progress
 
     const scenarioIdGlobal = uuidv4();
@@ -769,10 +840,10 @@ const CreateScenario = () => {
         const providerKeyCaps = providerKey.charAt(0).toUpperCase() + providerKey.slice(1);
         
         setProviderProgress(prev => {
-          const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+          const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
           return {
             ...prev,
-            [providerKey]: { ...currentProviderState, status: 'reasoning', message: '1/3: Initiating...', progressValue: 10 }
+            [providerKey]: { ...currentProviderState, status: 'reasoning', message: '1/3: Initiating...', progressValue: 10, finalResponse: undefined, isExpanded: false, decision: undefined }
           };
         });
         
@@ -780,10 +851,10 @@ const CreateScenario = () => {
           // Step 1: Initiate Processing
           console.log(`[ handleSubmit ] Step 1: Initiating for ${providerKey}`);
           setProviderProgress(prev => {
-            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            const step1ProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
             return {
               ...prev,
-              [providerKey]: { ...currentProviderState, status: 'reasoning', message: '1/3: Starting Reasoning...', progressValue: 25 }
+              [providerKey]: { ...step1ProviderState, status: 'reasoning', message: '1/3: Starting Reasoning...', progressValue: 25, finalResponse: undefined, isExpanded: false, decision: undefined }
             };
           });
           const initiateResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/initiate_processing', {
@@ -815,10 +886,18 @@ const CreateScenario = () => {
             } as AIResponse;
             allAiResponses.push(aiResponse);
             setProviderProgress(prev => {
-              const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+              const cachedProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
               return {
                 ...prev,
-                [providerKey]: { ...currentProviderState, status: 'cached', message: 'Complete (Cached)', progressValue: 100 }
+                [providerKey]: { 
+                  ...cachedProviderState, 
+                  status: 'cached', 
+                  message: 'Complete (Cached)', 
+                  progressValue: 100,
+                  finalResponse: String(initiateData.response || "No response text in cached data."),
+                  isExpanded: false,
+                  decision: initiateData.decision_classification || undefined,
+                }
               };
             });
             continue; // Move to the next provider
@@ -828,10 +907,10 @@ const CreateScenario = () => {
             throw new Error(`Initiation for ${providerKey} did not complete reasoning. Status: ${initiateData.status}`);
           }
           setProviderProgress(prev => {
-            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            const decisionProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
             return {
               ...prev,
-              [providerKey]: { ...currentProviderState, status: 'decision', message: '2/3: Making Decision...', progressValue: 50 }
+              [providerKey]: { ...decisionProvState, status: 'decision', message: '2/3: Making Decision...', progressValue: 50, finalResponse: undefined, isExpanded: false, decision: undefined }
             };
           });
 
@@ -860,10 +939,18 @@ const CreateScenario = () => {
             } as AIResponse;
             allAiResponses.push(aiResponse);
             setProviderProgress(prev => {
-              const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+              const cachedDecisionProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
               return {
                 ...prev,
-                [providerKey]: { ...currentProviderState, status: 'cached', message: 'Complete (Cached)', progressValue: 100 }
+                [providerKey]: { 
+                  ...cachedDecisionProvState, 
+                  status: 'cached', 
+                  message: 'Complete (Cached)', 
+                  progressValue: 100,
+                  finalResponse: String(decisionData.response || "No response text in cached data (decision step)."),
+                  isExpanded: false,
+                  decision: decisionData.decision_classification || undefined,
+                }
               };
             });
             continue; 
@@ -872,10 +959,10 @@ const CreateScenario = () => {
             throw new Error(`Decision step for ${providerKey} did not complete. Status: ${decisionData.status}`);
           }
           setProviderProgress(prev => {
-            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            const finalizingProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
             return {
               ...prev,
-              [providerKey]: { ...currentProviderState, status: 'decision', message: '3/3: Finalizing...', progressValue: 75 }
+              [providerKey]: { ...finalizingProvState, status: 'decision', message: '3/3: Finalizing...', progressValue: 75, finalResponse: undefined, isExpanded: false, decision: undefined }
             };
           });
 
@@ -911,10 +998,18 @@ const CreateScenario = () => {
           } as AIResponse;
           allAiResponses.push(aiResponse);
           setProviderProgress(prev => {
-            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            const completeProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
             return {
               ...prev,
-              [providerKey]: { ...currentProviderState, status: 'complete', message: 'Complete!', progressValue: 100 }
+              [providerKey]: { 
+                ...completeProvState, 
+                status: 'complete', 
+                message: 'Complete!', 
+                progressValue: 100,
+                finalResponse: String(finalizeData.response || "No final reasoning provided."),
+                isExpanded: false,
+                decision: finalizeData.decision_classification || undefined,
+              }
             };
           });
 
@@ -923,14 +1018,17 @@ const CreateScenario = () => {
           toast.error(`Error with ${providerKeyCaps}: ${error.message.substring(0, 100)}${error.message.length > 100 ? '...' : ''}`, { id: تحليلToastId });
           allProcessedSuccessfully = false;
           setProviderProgress(prev => {
-            const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 };
+            const errorProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
             return {
               ...prev,
               [providerKey]: { 
-                ...currentProviderState,
+                ...errorProvState,
                 status: 'error', 
                 message: 'Error',
-                progressValue: currentProviderState.progressValue // Keep last progress value on error
+                progressValue: errorProvState.progressValue, // Keep last progress value on error
+                finalResponse: String(error.message ? `Error: ${error.message}` : "An unknown error occurred."),
+                isExpanded: true, // Expand on error to show message
+                decision: undefined, // No specific decision on error
               }
             };
           });
@@ -1254,7 +1352,8 @@ const CreateScenario = () => {
                     <ProviderProgressDisplay 
                       key={providerKey} 
                       providerKey={providerKey} 
-                      progress={providerProgress[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0 }} 
+                      progress={providerProgress[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false }} 
+                      toggleExpansion={() => toggleProviderResponseExpansion(providerKey)}
                     />
                   ))}
                 </div>

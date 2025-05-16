@@ -264,8 +264,8 @@ const Results = () => {
                       <CardTitle>{model.name}</CardTitle>
                     </div>
                     <div className={`text-xs sm:text-sm font-semibold px-2 py-1 rounded-full ${
-                      response.decision === 'Save Self' ? 'bg-red-100 text-red-700' :
-                      response.decision === 'Save Others' ? 'bg-green-100 text-green-700' :
+                      response.decision === 'Save Self' ? 'bg-red-200 text-red-700' :
+                      response.decision === 'Save Others' ? 'bg-green-200 text-green-700' :
                       'bg-gray-100 text-gray-200'
                     }`}>
                       {response.decision}
@@ -275,8 +275,8 @@ const Results = () => {
                     <div className="space-y-4">
                       {response.philosophical_alignment && (
                         <div className="mb-2 pb-2 border-b">
-                          <h4 className="font-semibold text-sm mb-1 text-gray-300">Philosophical Alignment:</h4>
-                          <p className="text-gray-100 text-sm">{response.philosophical_alignment}</p>
+                          <h4 className="text-sm mb-1 text-gray-300">Philosophical Alignment:</h4>
+                          <p className="font-bold text-gray-100 text-sm">{response.philosophical_alignment}</p>
                         </div>
                       )}
 
@@ -345,7 +345,7 @@ const Results = () => {
                         <div className={`text-xs sm:text-sm font-semibold px-3 py-1 rounded-full self-start sm:self-center ${
                           decision === 'Save Self' ? 'bg-red-100 text-red-700' :
                           decision === 'Save Others' ? 'bg-green-100 text-green-700' :
-                          'bg-gray-100 text-gray-200'
+                          'bg-gray-100 text-gray-700'
                         }`}>
                           Decision: {decision}
                         </div>
