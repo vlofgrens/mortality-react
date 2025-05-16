@@ -46,7 +46,6 @@ The application will guide you or the LLM through a series of scenarios. (Furthe
 -   Interactive interface for presenting philosophical dilemmas to LLMs.
 -   Frontend for the "AI Mortality Experiment".
 -   User-friendly design to facilitate the experimental process.
--   (Add more specific features as the project develops)
 
 ## Technologies Used
 
