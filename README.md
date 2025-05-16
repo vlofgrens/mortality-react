@@ -1,73 +1,65 @@
-# Welcome to your Lovable project
+# AI Mortality Experiment
 
-## Project info
+## Description
 
-**URL**: https://lovable.dev/projects/77d1816a-1a30-4fee-819b-5efb3b81da3d
+This project serves as the frontend for a philosophical experiment. It presents Large Language Models (LLMs) with hypothetical scenarios, requiring them to make a choice between self-preservation (living) or self-sacrifice.
 
-## How can I edit this code?
+## Installation
 
-There are several ways of editing your application.
+To set up the project locally, follow these steps:
 
-**Use Lovable**
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/vlofgrens/mortality-react
+    cd mortality_react # e.g., mortality_react or AI-Mortality-Experiment
+    ```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/77d1816a-1a30-4fee-819b-5efb3b81da3d) and start prompting.
+2.  **Install dependencies:**
+    This project uses npm for package management.
+    ```bash
+    npm install
+    ```
+    Alternatively, if you prefer Yarn:
+    ```bash
+    yarn install
+    ```
 
-Changes made via Lovable will be committed automatically to this repo.
+3.  **Run the development server:**
+    Using npm:
+    ```bash
+    npm run dev
+    ```
+    Or using Yarn:
+    ```bash
+    yarn dev
+    ```
+    This will typically start the development server at `http://localhost:8080`. Open this URL in your web browser to see the application.
 
-**Use your preferred IDE**
+## Usage
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Once the development server is running, you can access the application by navigating to the local URL (usually `http://localhost:8080`) in your web browser.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+The application will guide you or the LLM through a series of scenarios. (Further details on specific interactions can be added here as the application evolves).
 
-Follow these steps:
+## Features
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+-   Interactive interface for presenting philosophical dilemmas to LLMs.
+-   Frontend for the "AI Mortality Experiment".
+-   User-friendly design to facilitate the experimental process.
+-   (Add more specific features as the project develops)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Technologies Used
 
-# Step 3: Install the necessary dependencies.
-npm i
+-   **[Vite](https://vitejs.dev/)**: Next-generation frontend tooling for a fast development experience.
+-   **[React](https://reactjs.org/)**: A JavaScript library for building user interfaces.
+-   **[TypeScript](https://www.typescriptlang.org/)**: JavaScript with syntax for types, enhancing code quality and maintainability.
+-   **[Tailwind CSS](https://tailwindcss.com/)**: A utility-first CSS framework for rapid UI development.
+-   **[shadcn/ui](https://ui.shadcn.com/)**: Beautifully designed, re-usable components built using Radix UI and Tailwind CSS.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## Contact
 
-**Edit a file directly in GitHub**
+For questions, suggestions, or collaborations regarding the "AI Mortality Experiment" project, please reach out to:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+-   **Victor Löfgren @ Cloudwalk**: [victor.sattamini@cloudwalk.io]
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/77d1816a-1a30-4fee-819b-5efb3b81da3d) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+---
