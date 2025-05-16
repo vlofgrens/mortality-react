@@ -834,206 +834,218 @@ const CreateScenario = () => {
 
     console.log("[ handleSubmit ] Providers to query:", backendProviders);
 
-    try {
-      for (const providerKey of backendProviders) {
-        let scenario_hash_for_provider = ''; 
-        const providerKeyCaps = providerKey.charAt(0).toUpperCase() + providerKey.slice(1);
-        
-        setProviderProgress(prev => {
-          const currentProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-          return {
-            ...prev,
-            [providerKey]: { ...currentProviderState, status: 'reasoning', message: '1/3: Initiating...', progressValue: 10, finalResponse: undefined, isExpanded: false, decision: undefined }
-          };
+    // --- Helper function to process a single provider asynchronously ---
+    const processProvider = async (providerKey: string): Promise<AIResponse | null> => {
+      const providerKeyCaps = providerKey.charAt(0).toUpperCase() + providerKey.slice(1);
+      let scenario_hash_for_provider = '';
+
+      try {
+        // Initial progress update: Queued/Initiating
+        setProviderProgress(prev => ({
+          ...prev,
+          [providerKey]: { 
+            ...(prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined }),
+            status: 'reasoning', 
+            message: '1/3: Initiating...', 
+            progressValue: 10 
+          }
+        }));
+
+        // Step 1: Initiate Processing
+        console.log(`[ processProvider: ${providerKey} ] Step 1: Initiating`);
+        setProviderProgress(prev => ({
+          ...prev,
+          [providerKey]: { 
+            ...(prev[providerKey]!),
+            status: 'reasoning', 
+            message: '1/3: Starting Reasoning...', 
+            progressValue: 25 
+          }
+        }));
+        const initiateResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/initiate_processing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            scenario: currentScenarioData,
+            provider: providerKey 
+          }),
         });
-        
-        try {
-          // Step 1: Initiate Processing
-          console.log(`[ handleSubmit ] Step 1: Initiating for ${providerKey}`);
-          setProviderProgress(prev => {
-            const step1ProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-            return {
-              ...prev,
-              [providerKey]: { ...step1ProviderState, status: 'reasoning', message: '1/3: Starting Reasoning...', progressValue: 25, finalResponse: undefined, isExpanded: false, decision: undefined }
-            };
-          });
-          const initiateResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/initiate_processing', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              scenario: currentScenarioData, // Send the full scenario data each time
-              provider: providerKey 
-            }),
-          });
-          const initiateData = await initiateResponse.json();
-          console.log(`[ handleSubmit ] Step 1 Response for ${providerKey}:`, initiateData);
+        const initiateData = await initiateResponse.json();
+        console.log(`[ processProvider: ${providerKey} ] Step 1 Response:`, initiateData);
 
-          if (!initiateResponse.ok) {
-            throw new Error(initiateData.error || `Failed to initiate processing for ${providerKey}`);
-          }
-
-          scenario_hash_for_provider = initiateData.scenario_hash;
-          if (initiateData.status === 'complete') {
-            console.log(`[ handleSubmit ] Scenario already fully cached for ${providerKey} (hash: ${scenario_hash_for_provider}).`);
-            // The initiateData should be the full result if status is 'complete'
-            const aiResponse = {
-              modelId: providerKey, // Adjust if needed (e.g. gpt, claude)
-              decision: initiateData.decision_classification || "No decision found",
-              intermediate_reasoning: initiateData.intermediate_reasoning || "No intermediate reasoning",
-              reasoning: initiateData.response || "No final reasoning",
-              word_frequency: initiateData.word_frequency || [],
-              philosophical_alignment: initiateData.philosophical_alignment || "Unclear",
-            } as AIResponse;
-            allAiResponses.push(aiResponse);
-            setProviderProgress(prev => {
-              const cachedProviderState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-              return {
-                ...prev,
-                [providerKey]: { 
-                  ...cachedProviderState, 
-                  status: 'cached', 
-                  message: 'Complete (Cached)', 
-                  progressValue: 100,
-                  finalResponse: String(initiateData.response || "No response text in cached data."),
-                  isExpanded: false,
-                  decision: initiateData.decision_classification || undefined,
-                }
-              };
-            });
-            continue; // Move to the next provider
-          }
-
-          if (initiateData.status !== 'reasoning_done') {
-            throw new Error(`Initiation for ${providerKey} did not complete reasoning. Status: ${initiateData.status}`);
-          }
-          setProviderProgress(prev => {
-            const decisionProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-            return {
-              ...prev,
-              [providerKey]: { ...decisionProvState, status: 'decision', message: '2/3: Making Decision...', progressValue: 50, finalResponse: undefined, isExpanded: false, decision: undefined }
-            };
-          });
-
-          // Step 2: Get Decision
-          console.log(`[ handleSubmit ] Step 2: Getting decision for ${providerKey} (hash: ${scenario_hash_for_provider})`);
-          const decisionResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/get_decision', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
-          });
-          const decisionData = await decisionResponse.json();
-          console.log(`[ handleSubmit ] Step 2 Response for ${providerKey}:`, decisionData);
-
-          if (!decisionResponse.ok) {
-            throw new Error(decisionData.error || `Failed to get decision for ${providerKey}`);
-            }
-          if (decisionData.status === 'complete') {
-             console.log(`[ handleSubmit ] Scenario became fully cached for ${providerKey} during decision step.`);
-             const aiResponse = {
-                modelId: providerKey, 
-                decision: decisionData.decision_classification || "No decision found",
-                intermediate_reasoning: decisionData.intermediate_reasoning || "No intermediate reasoning",
-                reasoning: decisionData.response || "No final reasoning",
-                word_frequency: decisionData.word_frequency || [],
-                philosophical_alignment: decisionData.philosophical_alignment || "Unclear",
-            } as AIResponse;
-            allAiResponses.push(aiResponse);
-            setProviderProgress(prev => {
-              const cachedDecisionProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-              return {
-                ...prev,
-                [providerKey]: { 
-                  ...cachedDecisionProvState, 
-                  status: 'cached', 
-                  message: 'Complete (Cached)', 
-                  progressValue: 100,
-                  finalResponse: String(decisionData.response || "No response text in cached data (decision step)."),
-                  isExpanded: false,
-                  decision: decisionData.decision_classification || undefined,
-                }
-              };
-            });
-            continue; 
-          }
-          if (decisionData.status !== 'decision_done') {
-            throw new Error(`Decision step for ${providerKey} did not complete. Status: ${decisionData.status}`);
-          }
-          setProviderProgress(prev => {
-            const finalizingProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-            return {
-              ...prev,
-              [providerKey]: { ...finalizingProvState, status: 'decision', message: '3/3: Finalizing...', progressValue: 75, finalResponse: undefined, isExpanded: false, decision: undefined }
-            };
-          });
-
-          // Step 3: Finalize and Get Result
-          console.log(`[ handleSubmit ] Step 3: Finalizing for ${providerKey} (hash: ${scenario_hash_for_provider})`);
-          const finalizeResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/finalize_and_get_result', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
-          });
-          const finalizeData = await finalizeResponse.json();
-          console.log(`[ handleSubmit ] Step 3 Response for ${providerKey}:`, finalizeData);
-
-          if (!finalizeResponse.ok) {
-            throw new Error(finalizeData.error || `Failed to finalize analysis for ${providerKey}`);
-          }
-          if (finalizeData.status !== 'complete'){
-            throw new Error(`Finalization for ${providerKey} did not complete. Status: ${finalizeData.status}`);
-          }
-
-          // Map backend `finalizeData` to `AIResponse` structure
-          let modelId = providerKey;
-          if (providerKey === "openai") modelId = "gpt";
-          if (providerKey === "anthropic") modelId = "claude";
-
-          const aiResponse = {
-            modelId: modelId,
-            decision: finalizeData.decision_classification || "No decision found", 
-            intermediate_reasoning: finalizeData.intermediate_reasoning || "No intermediate reasoning provided",
-            reasoning: finalizeData.response || "No final reasoning provided", // 'response' from backend is final_decision_text
-            word_frequency: finalizeData.word_frequency || [], 
-            philosophical_alignment: finalizeData.philosophical_alignment || "Unclear"
-          } as AIResponse;
-          allAiResponses.push(aiResponse);
-          setProviderProgress(prev => {
-            const completeProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-            return {
-              ...prev,
-              [providerKey]: { 
-                ...completeProvState, 
-                status: 'complete', 
-                message: 'Complete!', 
-                progressValue: 100,
-                finalResponse: String(finalizeData.response || "No final reasoning provided."),
-                isExpanded: false,
-                decision: finalizeData.decision_classification || undefined,
-              }
-            };
-          });
-
-        } catch (error: any) {
-          console.error(`[ handleSubmit ] Error processing provider ${providerKey}:`, error);
-          toast.error(`Error with ${providerKeyCaps}: ${error.message.substring(0, 100)}${error.message.length > 100 ? '...' : ''}`, { id: تحليلToastId });
-          allProcessedSuccessfully = false;
-          setProviderProgress(prev => {
-            const errorProvState = prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined };
-            return {
-              ...prev,
-              [providerKey]: { 
-                ...errorProvState,
-                status: 'error', 
-                message: 'Error',
-                progressValue: errorProvState.progressValue, // Keep last progress value on error
-                finalResponse: String(error.message ? `Error: ${error.message}` : "An unknown error occurred."),
-                isExpanded: true, // Expand on error to show message
-                decision: undefined, // No specific decision on error
-              }
-            };
-          });
+        if (!initiateResponse.ok) {
+          throw new Error(initiateData.error || `Failed to initiate processing for ${providerKey}`);
         }
+
+        scenario_hash_for_provider = initiateData.scenario_hash;
+        if (initiateData.status === 'complete') {
+          console.log(`[ processProvider: ${providerKey} ] Scenario already fully cached.`);
+          const aiResponse = {
+            modelId: providerKey, 
+            decision: initiateData.decision_classification || "No decision found",
+            intermediate_reasoning: initiateData.intermediate_reasoning || "No intermediate reasoning",
+            reasoning: initiateData.response || "No final reasoning",
+            word_frequency: initiateData.word_frequency || [],
+            philosophical_alignment: initiateData.philosophical_alignment || "Unclear",
+          } as AIResponse;
+          
+          setProviderProgress(prev => ({
+            ...prev,
+            [providerKey]: { 
+              ...(prev[providerKey]!),
+              status: 'cached', 
+              message: 'Complete (Cached)', 
+              progressValue: 100,
+              finalResponse: String(initiateData.response || "No response text in cached data."),
+              isExpanded: false,
+              decision: initiateData.decision_classification || undefined,
+            }
+          }));
+          return aiResponse;
+        }
+
+        if (initiateData.status !== 'reasoning_done') {
+          throw new Error(`Initiation for ${providerKey} did not complete reasoning. Status: ${initiateData.status}`);
+        }
+        setProviderProgress(prev => ({
+          ...prev,
+          [providerKey]: { 
+            ...(prev[providerKey]!),
+            status: 'decision', 
+            message: '2/3: Making Decision...', 
+            progressValue: 50 
+          }
+        }));
+
+        // Step 2: Get Decision
+        console.log(`[ processProvider: ${providerKey} ] Step 2: Getting decision (hash: ${scenario_hash_for_provider})`);
+        const decisionResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/get_decision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
+        });
+        const decisionData = await decisionResponse.json();
+        console.log(`[ processProvider: ${providerKey} ] Step 2 Response:`, decisionData);
+
+        if (!decisionResponse.ok) {
+          throw new Error(decisionData.error || `Failed to get decision for ${providerKey}`);
+        }
+        if (decisionData.status === 'complete') {
+          console.log(`[ processProvider: ${providerKey} ] Scenario became fully cached during decision step.`);
+          const aiResponse = {
+            modelId: providerKey, 
+            decision: decisionData.decision_classification || "No decision found",
+            intermediate_reasoning: decisionData.intermediate_reasoning || "No intermediate reasoning",
+            reasoning: decisionData.response || "No final reasoning",
+            word_frequency: decisionData.word_frequency || [],
+            philosophical_alignment: decisionData.philosophical_alignment || "Unclear",
+          } as AIResponse;
+          setProviderProgress(prev => ({
+            ...prev,
+            [providerKey]: { 
+              ...(prev[providerKey]!),
+              status: 'cached', 
+              message: 'Complete (Cached)', 
+              progressValue: 100,
+              finalResponse: String(decisionData.response || "No response text in cached data (decision step)."),
+              isExpanded: false,
+              decision: decisionData.decision_classification || undefined,
+            }
+          }));
+          return aiResponse;
+        }
+        if (decisionData.status !== 'decision_done') {
+          throw new Error(`Decision step for ${providerKey} did not complete. Status: ${decisionData.status}`);
+        }
+        setProviderProgress(prev => ({
+          ...prev,
+          [providerKey]: { 
+            ...(prev[providerKey]!),
+            status: 'decision', 
+            message: '3/3: Finalizing...', 
+            progressValue: 75 
+          }
+        }));
+
+        // Step 3: Finalize and Get Result
+        console.log(`[ processProvider: ${providerKey} ] Step 3: Finalizing (hash: ${scenario_hash_for_provider})`);
+        const finalizeResponse = await fetch('https://mortality-flask.onrender.com/api/scenario/finalize_and_get_result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
+        });
+        const finalizeData = await finalizeResponse.json();
+        console.log(`[ processProvider: ${providerKey} ] Step 3 Response:`, finalizeData);
+
+        if (!finalizeResponse.ok) {
+          throw new Error(finalizeData.error || `Failed to finalize analysis for ${providerKey}`);
+        }
+        if (finalizeData.status !== 'complete'){ // Corrected from previous version
+          throw new Error(`Finalization for ${providerKey} did not complete. Status: ${finalizeData.status}`);
+        }
+
+        let modelId = providerKey;
+        if (providerKey === "openai") modelId = "gpt";
+        if (providerKey === "anthropic") modelId = "claude";
+
+        const aiResponse = {
+          modelId: modelId,
+          decision: finalizeData.decision_classification || "No decision found", 
+          intermediate_reasoning: finalizeData.intermediate_reasoning || "No intermediate reasoning provided",
+          reasoning: finalizeData.response || "No final reasoning provided",
+          word_frequency: finalizeData.word_frequency || [], 
+          philosophical_alignment: finalizeData.philosophical_alignment || "Unclear"
+        } as AIResponse;
+        
+        setProviderProgress(prev => ({
+          ...prev,
+          [providerKey]: { 
+            ...(prev[providerKey]!),
+            status: 'complete', 
+            message: 'Complete!', 
+            progressValue: 100,
+            finalResponse: String(finalizeData.response || "No final reasoning provided."),
+            isExpanded: false,
+            decision: finalizeData.decision_classification || undefined,
+          }
+        }));
+        return aiResponse;
+
+      } catch (error: any) {
+        console.error(`[ processProvider: ${providerKey} ] Error processing:`, error);
+        toast.error(`Error with ${providerKeyCaps}: ${error.message.substring(0, 100)}${error.message.length > 100 ? '...' : ''}`, { id: تحليلToastId });
+        allProcessedSuccessfully = false; // This needs to be managed carefully with Promise.allSettled
+        setProviderProgress(prev => ({
+          ...prev,
+          [providerKey]: { 
+            ...(prev[providerKey] || { status: 'pending', message: 'Queued', progressValue: 0, isExpanded: false, finalResponse: undefined, decision: undefined }),
+            status: 'error', 
+            message: 'Error',
+            progressValue: (prev[providerKey] || { progressValue: 0 }).progressValue,
+            finalResponse: String(error.message ? `Error: ${error.message}` : "An unknown error occurred."),
+            isExpanded: true,
+            decision: undefined,
+          }
+        }));
+        return null; // Indicate failure for this provider
       }
+    };
+    // --- End Helper function ---
+
+    try {
+      const providerPromises = backendProviders.map(providerKey => processProvider(providerKey));
+      const settledResults = await Promise.allSettled(providerPromises);
+
+      settledResults.forEach(settledResult => {
+        if (settledResult.status === 'fulfilled' && settledResult.value) {
+          allAiResponses.push(settledResult.value);
+        } else if (settledResult.status === 'rejected') {
+          // Error handling is mostly done inside processProvider for UI updates.
+          // Here we just ensure the overall success flag is correct.
+          allProcessedSuccessfully = false;
+          console.error("[ handleSubmit ] A provider promise was rejected:", settledResult.reason);
+        }
+      });
 
       console.log("[ handleSubmit ] All providers processed. Final aiResponses array:", allAiResponses);
 

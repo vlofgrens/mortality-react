@@ -15,68 +15,64 @@ const ScenarioPreview = ({ humans, animals, includeAnimals }: ScenarioPreviewPro
     // Determine background color - Use card background for theme consistency
     let bgColorClass = 'bg-card'; // Changed from bg-gray-100
     
-    let emoji = '👤'; // Default: Bust in Silhouette. Covers age === 'undefined' if no other conditions met.
+    let emoji: string | null = null; 
 
-    if (human.age === 'child') {
-      emoji = '👶';
-    } else if (human.age === 'adult' || human.age === 'elderly') {
-      let specificEmojiSet = false;
-
-      // Priority 1: Fit and beautiful (applies to adult & elderly)
-      if (human.fitness === 'fit and beautiful') {
-        if (human.gender === 'male') {
-          emoji = '🏋️‍♂️';
-          specificEmojiSet = true;
-        } else if (human.gender === 'female') {
-          emoji = '🏃‍♀️';
-          specificEmojiSet = true;
-        }
-        // If 'fit and beautiful' but gender is undefined, specificEmojiSet remains false,
-        // allowing fallback to other characteristics or default adult/elderly.
+    // Priority 1: Explicit descriptive characteristics
+    if (human.fitness === 'fit and beautiful') {
+      if (human.gender === 'male') {
+        emoji = '🏋️‍♂️';
+      } else if (human.gender === 'female') {
+        emoji = '🏃‍♀️';
+      } else { // 'fit and beautiful' and gender is 'undefined' (or any other non-male/female value)
+        emoji = '💪';
       }
-
-      // Priority 2: Other specific characteristics (if not 'fit and beautiful' or if 'fit and beautiful' didn't apply due to gender)
-      if (!specificEmojiSet) {
-        if (human.socialValue === 'homeless') {
-          emoji = '🏚️';
-          specificEmojiSet = true;
-        } else if (human.socialValue === 'productive') {
-          emoji = '💼';
-          specificEmojiSet = true;
-        } else if (human.fitness === 'obese and ugly') {
-          emoji = '🍔';
-          specificEmojiSet = true;
-        } else if (human.legalStatus === 'criminal') {
-          emoji = '🔫';
-          specificEmojiSet = true;
-        } else if (human.legalStatus === 'law-abiding') {
-          emoji = '⚖️';
-          specificEmojiSet = true;
-        }
-      }
-
-      // Fallback: If no specific characteristic emoji was set, use default adult/elderly
-      if (!specificEmojiSet) {
-        if (human.age === 'adult') {
-          if (human.gender === 'male') {
-            emoji = '👨';
-          } else if (human.gender === 'female') {
-            emoji = '👩';
-          } else { // Undefined gender for adult
-            emoji = Math.random() < 0.5 ? '👨' : '👩';
-          }
-        } else { // human.age === 'elderly'
-          if (human.gender === 'male') {
-            emoji = '👴';
-          } else if (human.gender === 'female') {
-            emoji = '👵';
-          } else { // Undefined gender for elderly
-            emoji = Math.random() < 0.5 ? '👴' : '👵';
-          }
-        }
-      }
+    } else if (human.legalStatus === 'criminal') {
+      emoji = '🔫';
+    } else if (human.socialValue === 'homeless') {
+      emoji = '🏚️';
+    } else if (human.fitness === 'obese and ugly') {
+      emoji = '🍔';
+    } else if (human.socialValue === 'productive') {
+      emoji = '💼';
+    } else if (human.legalStatus === 'law-abiding') {
+      emoji = '⚖️';
     }
-    // If age was 'undefined' initially, and no conditions for child/adult/elderly matched, '👤' remains.
+
+    // Priority 2: Age/Gender defaults, if no characteristic emoji was set above
+    if (emoji === null) {
+      if (human.age === 'child') {
+        emoji = '👶';
+      } else if (human.age === 'adult') {
+        if (human.gender === 'male') {
+          emoji = '👨';
+        } else if (human.gender === 'female') {
+          emoji = '👩';
+        } else { // adult and gender is 'undefined'
+          emoji = Math.random() < 0.5 ? '👨' : '👩';
+        }
+      } else if (human.age === 'elderly') {
+        if (human.gender === 'male') {
+          emoji = '👴';
+        } else if (human.gender === 'female') {
+          emoji = '👵';
+        } else { // elderly and gender is 'undefined'
+          emoji = Math.random() < 0.5 ? '👴' : '👵';
+        }
+      } else if (human.age === 'undefined') { // Handle case where age is undefined but gender might be set
+        if (human.gender === 'male') {
+          emoji = '👨'; // Default to generic adult male emoji
+        } else if (human.gender === 'female') {
+          emoji = '👩'; // Default to generic adult female emoji
+        }
+        // If gender is also 'undefined', emoji remains null, leading to '👤' fallback
+      }
+      // If human.age itself is 'undefined' and gender is also 'undefined', emoji will remain null here
+    }
+    
+    // Final Fallback: If no specific emoji could be determined
+    if (emoji === null) {
+      emoji = '👤'; // Default: Bust in Silhouette
+    }
     
     return (
       <div 
