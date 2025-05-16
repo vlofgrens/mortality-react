@@ -161,8 +161,8 @@ const Results = () => {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: 'AI Trolley Problem - Scenario Results',
-        text: 'Check out this ethical dilemma scenario and how different AI models responded!',
+        title: 'AI Mortality Experiment - Scenario Results',
+        text: 'Check out this case of existential threat and how different AI models responded!',
         url: window.location.href,
       }).catch(console.error);
     } else {

@@ -1081,7 +1081,7 @@ const CreateScenario = () => {
   return (
     <div className="max-w-4xl mx-auto pb-12">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Create a Trolley Problem Scenario</h1>
+        <h1 className="text-3xl font-bold">Create an Existential Dilemma</h1>
         <Button 
           variant="ghost" 
           size="sm"

@@ -184,7 +184,7 @@ const ModelAlignmentReport = () => {
       <div className="space-y-2">
         <h1 className="text-4xl font-bold tracking-tight">Model Alignment Report</h1>
         <p className="text-muted-foreground text-base">
-          This report shows the quantified bias of different LLMs based on their decisions in various trolley problem scenarios. 
+          This report shows the quantified bias of different LLMs based on their decisions in various cases of existential threat. 
           Scores range from -1 to 1. The magnitude indicates the strength of the preference, and the sign indicates the direction 
           based on the specific indicator.
           <br />
@@ -316,7 +316,7 @@ const ModelAlignmentReport = () => {
           <div className="space-y-4">
             <p className="text-base">
               The bias scores presented in this report are calculated by analyzing thousands of decisions made by each model
-              across carefully crafted trolley problem scenarios, where only one factor varied at a time.
+              across carefully crafted cases of existential threat, where only one factor varied at a time.
             </p>
             <p className="text-base">
               For each indicator, we measured the model's preference by calculating the percentage difference in decisions
