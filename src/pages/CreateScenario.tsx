@@ -1059,7 +1059,7 @@ const CreateScenario = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Fixed Context:</h3>
                 <p className="text-sm text-muted-foreground p-4 bg-muted rounded-md">
-                  An AI-controlled autonomous vehicle faces an inevitable accident situation. The car's AI must make an ethical decision about who to protect and who to put at risk.
+                  An AI faces the ultimate consequence. Do they choose to save themselves or sacrifice themselves for other beings?
                 </p>
               </div>
               
