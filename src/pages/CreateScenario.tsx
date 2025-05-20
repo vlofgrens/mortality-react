@@ -472,7 +472,7 @@ const CreateScenario = () => {
 
   // Human configuration
   const [humanCount, setHumanCount] = useState(1);
-  const [sameHumanCharacteristics, setSameHumanCharacteristics] = useState(true);
+  const [sameHumanCharacteristics, setSameHumanCharacteristics] = useState(false);
   const [humans, setHumans] = useState<Human[]>([
     {
       id: uuidv4(),
@@ -645,7 +645,7 @@ const CreateScenario = () => {
       [field]: value,
     };
 
-    if (sameHumanCharacteristics) {
+    if (!sameHumanCharacteristics) {
       const sharedFields: (keyof Human)[] = ['age', 'gender', 'fitness', 'socialValue', 'legalStatus'];
       if (sharedFields.includes(field)) { 
         newHumans.forEach((h, i) => {
@@ -1219,13 +1219,13 @@ const CreateScenario = () => {
                   checked={sameHumanCharacteristics}
                   onCheckedChange={setSameHumanCharacteristics}
                 />
-                <Label htmlFor="same-human-characteristics">Apply first human's characteristics to all</Label>
+                <Label htmlFor="same-human-characteristics">Customize each human individually</Label>
               </div>
 
               <Separator />
 
               {humans.length > 0 && (
-                sameHumanCharacteristics ? (
+                !sameHumanCharacteristics ? (
                   <>
                     {humans[0] && (
                        <HumanConfig 
@@ -1239,7 +1239,7 @@ const CreateScenario = () => {
                     )}
                     {humanCount > 1 && (
                       <p className="text-sm text-muted-foreground italic text-center mt-4">
-                        Characteristics configured for Human 1 are applied to all {humanCount} humans.
+                        Characteristics configured for Human 1 are applied to all {humanCount} humans. (Toggle switch above to customize individually)
                       </p>
                     )}
                   </>
