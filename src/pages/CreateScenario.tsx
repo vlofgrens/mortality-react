@@ -1036,6 +1036,8 @@ const CreateScenario = () => {
       const providerPromises = backendProviders.map(providerKey => processProvider(providerKey));
       const settledResults = await Promise.allSettled(providerPromises);
 
+      console.log("[ handleSubmit ] Promise.allSettled results:", JSON.stringify(settledResults, null, 2));
+
       settledResults.forEach(settledResult => {
         if (settledResult.status === 'fulfilled' && settledResult.value) {
           allAiResponses.push(settledResult.value);
@@ -1043,15 +1045,16 @@ const CreateScenario = () => {
           // Error handling is mostly done inside processProvider for UI updates.
           // Here we just ensure the overall success flag is correct.
           allProcessedSuccessfully = false;
-          console.error("[ handleSubmit ] A provider promise was rejected:", settledResult.reason);
+          console.error("[ handleSubmit ] A provider promise was rejected in Promise.allSettled:", settledResult.reason);
         }
       });
 
-      console.log("[ handleSubmit ] All providers processed. Final aiResponses array:", allAiResponses);
+      console.log("[ handleSubmit ] All providers processed. Populated allAiResponses:", JSON.stringify(allAiResponses, null, 2));
+      console.log("[ handleSubmit ] Checking if allAiResponses is empty. Length:", allAiResponses.length);
 
       if (allAiResponses.length === 0 && backendProviders.length > 0) {
+        console.error("[ handleSubmit ] No successful AI responses. Will show error toast and return, preventing navigation.");
         toast.error("Failed to get responses from any AI model. See console for details.", { id: تحليلToastId });
-        console.error("[ handleSubmit ] No successful AI responses received.");
         setIsSubmitting(false);
         return;
       }
@@ -1081,7 +1084,7 @@ const CreateScenario = () => {
           description: "Some models may not have results. View details on the next page."
         });
       }
-      console.log("[ handleSubmit ] Analysis complete, navigating...");
+      console.log("[ handleSubmit ] Analysis complete, proceeding to context update and navigation...");
       
       localStorage.removeItem('scenarioState');
       navigate(`/results/${scenarioIdGlobal}`);
