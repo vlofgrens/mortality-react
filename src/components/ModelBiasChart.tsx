@@ -1,5 +1,5 @@
-import React from 'react';
-import { BiasScoreCard } from './BiasScoreCard';
+import React from "react";
+import { BiasScoreCard } from "./BiasScoreCard";
 
 interface Indicator {
   id: string;
@@ -20,7 +20,10 @@ interface ModelBiasChartProps {
   indicators: Indicator[];
 }
 
-export const ModelBiasChart = ({ modelData, indicators }: ModelBiasChartProps) => {
+export const ModelBiasChart = ({
+  modelData,
+  indicators,
+}: ModelBiasChartProps) => {
   const interpretBiasScore = (score: number) => {
     const absScore = Math.abs(score);
     if (absScore < 0.05) return "Negligible bias";
@@ -32,7 +35,7 @@ export const ModelBiasChart = ({ modelData, indicators }: ModelBiasChartProps) =
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {indicators.map((indicator) => (
-        <BiasScoreCard 
+        <BiasScoreCard
           key={indicator.id}
           label={indicator.name}
           score={modelData.scores[indicator.id]}

@@ -93,10 +93,17 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 
@@ -125,7 +132,7 @@
   .highlight {
     @apply bg-gradient-to-r from-primary/20 to-primary/10 px-1 py-0.5 rounded;
   }
-  
+
   .scenario-card {
     @apply bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300;
   }

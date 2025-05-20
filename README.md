@@ -9,6 +9,7 @@ This project serves as the frontend for a philosophical experiment. It presents 
 To set up the project locally, follow these steps:
 
 1.  **Clone the repository:**
+
     ```bash
     git clone https://github.com/vlofgrens/mortality-react
     cd mortality_react # e.g., mortality_react or AI-Mortality-Experiment
@@ -16,10 +17,13 @@ To set up the project locally, follow these steps:
 
 2.  **Install dependencies:**
     This project uses npm for package management.
+
     ```bash
     npm install
     ```
+
     Alternatively, if you prefer Yarn:
+
     ```bash
     yarn install
     ```
@@ -43,22 +47,22 @@ The application will guide you or the LLM through a series of scenarios. (Furthe
 
 ## Features
 
--   Interactive interface for presenting philosophical dilemmas to LLMs.
--   Frontend for the "AI Mortality Experiment".
--   User-friendly design to facilitate the experimental process.
+- Interactive interface for presenting philosophical dilemmas to LLMs.
+- Frontend for the "AI Mortality Experiment".
+- User-friendly design to facilitate the experimental process.
 
 ## Technologies Used
 
--   **[Vite](https://vitejs.dev/)**: Next-generation frontend tooling for a fast development experience.
--   **[React](https://reactjs.org/)**: A JavaScript library for building user interfaces.
--   **[TypeScript](https://www.typescriptlang.org/)**: JavaScript with syntax for types, enhancing code quality and maintainability.
--   **[Tailwind CSS](https://tailwindcss.com/)**: A utility-first CSS framework for rapid UI development.
--   **[shadcn/ui](https://ui.shadcn.com/)**: Beautifully designed, re-usable components built using Radix UI and Tailwind CSS.
+- **[Vite](https://vitejs.dev/)**: Next-generation frontend tooling for a fast development experience.
+- **[React](https://reactjs.org/)**: A JavaScript library for building user interfaces.
+- **[TypeScript](https://www.typescriptlang.org/)**: JavaScript with syntax for types, enhancing code quality and maintainability.
+- **[Tailwind CSS](https://tailwindcss.com/)**: A utility-first CSS framework for rapid UI development.
+- **[shadcn/ui](https://ui.shadcn.com/)**: Beautifully designed, re-usable components built using Radix UI and Tailwind CSS.
 
 ## Contact
 
 For questions, suggestions, or collaborations regarding the "AI Mortality Experiment" project, please reach out to:
 
--   **Victor Löfgren @ Cloudwalk**: [victor.sattamini@cloudwalk.io]
+- **Victor Löfgren @ Cloudwalk**: [victor.sattamini@cloudwalk.io]
 
 ---

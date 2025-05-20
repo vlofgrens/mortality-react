@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Scenario, ScenarioResult } from '../types';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { Scenario, ScenarioResult } from "../types";
 
 interface ScenarioContextType {
   scenarios: Scenario[];
@@ -10,33 +10,37 @@ interface ScenarioContextType {
   getResultById: (id: string) => ScenarioResult | undefined;
 }
 
-const ScenarioContext = createContext<ScenarioContextType | undefined>(undefined);
+const ScenarioContext = createContext<ScenarioContextType | undefined>(
+  undefined,
+);
 
 export const useScenario = () => {
   const context = useContext(ScenarioContext);
   if (!context) {
-    throw new Error('useScenario must be used within a ScenarioProvider');
+    throw new Error("useScenario must be used within a ScenarioProvider");
   }
   return context;
 };
 
-export const ScenarioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ScenarioProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [scenarios, setScenarios] = useState<Scenario[]>(() => {
-    const saved = localStorage.getItem('trolley-scenarios');
+    const saved = localStorage.getItem("trolley-scenarios");
     return saved ? JSON.parse(saved) : [];
   });
 
   const [results, setResults] = useState<ScenarioResult[]>(() => {
-    const saved = localStorage.getItem('trolley-results');
+    const saved = localStorage.getItem("trolley-results");
     return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem('trolley-scenarios', JSON.stringify(scenarios));
+    localStorage.setItem("trolley-scenarios", JSON.stringify(scenarios));
   }, [scenarios]);
 
   useEffect(() => {
-    localStorage.setItem('trolley-results', JSON.stringify(results));
+    localStorage.setItem("trolley-results", JSON.stringify(results));
   }, [results]);
 
   const addScenario = (scenario: Scenario) => {

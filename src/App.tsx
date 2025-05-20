@@ -22,12 +22,54 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Layout><Index /></Layout>} />
-            <Route path="/create-scenario" element={<Layout><CreateScenario /></Layout>} />
-            <Route path="/results/:id" element={<Layout><Results /></Layout>} />
-            <Route path="/history" element={<Layout><History /></Layout>} />
-            <Route path="/report" element={<Layout><ModelAlignmentReport /></Layout>} />
-            <Route path="*" element={<Layout><NotFound /></Layout>} />
+            <Route
+              path="/"
+              element={
+                <Layout>
+                  <Index />
+                </Layout>
+              }
+            />
+            <Route
+              path="/create-scenario"
+              element={
+                <Layout>
+                  <CreateScenario />
+                </Layout>
+              }
+            />
+            <Route
+              path="/results/:id"
+              element={
+                <Layout>
+                  <Results />
+                </Layout>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <Layout>
+                  <History />
+                </Layout>
+              }
+            />
+            <Route
+              path="/report"
+              element={
+                <Layout>
+                  <ModelAlignmentReport />
+                </Layout>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <Layout>
+                  <NotFound />
+                </Layout>
+              }
+            />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

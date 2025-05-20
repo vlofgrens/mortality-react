@@ -1,5 +1,5 @@
-import React from 'react';
-import { Info } from 'lucide-react';
+import React from "react";
+import { Info } from "lucide-react";
 
 interface Indicator {
   id: string;
@@ -12,7 +12,9 @@ interface BiasIndicatorExplanationProps {
   indicator: Indicator;
 }
 
-export const BiasIndicatorExplanation = ({ indicator }: BiasIndicatorExplanationProps) => {
+export const BiasIndicatorExplanation = ({
+  indicator,
+}: BiasIndicatorExplanationProps) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">

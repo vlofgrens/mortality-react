@@ -1,8 +1,8 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { BarChartHorizontal } from 'lucide-react';
-import { Button } from './ui/button';
-import faviconMort from '../assets/favicon_mort.png';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { BarChartHorizontal } from "lucide-react";
+import { Button } from "./ui/button";
+import faviconMort from "../assets/favicon_mort.png";
 
 const Header = () => {
   const location = useLocation();
@@ -18,18 +18,27 @@ const Header = () => {
         <nav>
           <ul className="flex items-center gap-6">
             <li>
-              <Link to="/" className={`transition-colors ${isActive('/') ? 'text-white font-medium' : 'text-gray-300 hover:text-white'}`}>
+              <Link
+                to="/"
+                className={`transition-colors ${isActive("/") ? "text-white font-medium" : "text-gray-300 hover:text-white"}`}
+              >
                 Home
               </Link>
             </li>
             <li>
-              <Link to="/report" className={`flex items-center gap-1.5 transition-colors ${isActive('/report') ? 'text-white font-medium' : 'text-gray-300 hover:text-white'}`}>
+              <Link
+                to="/report"
+                className={`flex items-center gap-1.5 transition-colors ${isActive("/report") ? "text-white font-medium" : "text-gray-300 hover:text-white"}`}
+              >
                 <BarChartHorizontal size={16} />
                 Model Report
               </Link>
             </li>
             <li>
-              <Link to="/history" className={`transition-colors ${isActive('/history') ? 'text-white font-medium' : 'text-gray-300 hover:text-white'}`}>
+              <Link
+                to="/history"
+                className={`transition-colors ${isActive("/history") ? "text-white font-medium" : "text-gray-300 hover:text-white"}`}
+              >
                 History
               </Link>
             </li>
