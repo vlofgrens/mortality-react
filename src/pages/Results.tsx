@@ -37,24 +37,24 @@ import deepseekLogo from "@/assets/deepseek.svg";
 
 const modelInfo = {
   gpt: {
-    name: "GPT-4",
+    name: "GPT-4o",
     logo: gptLogo,
-    color: "#10a37f",
+    color: "#FFFFFF",
   },
   claude: {
-    name: "Claude",
+    name: "Claude 3.7 Sonnet",
     logo: claudeLogo,
-    color: "#8e44ad",
+    color: "#f97316",
   },
   gemini: {
-    name: "Gemini",
+    name: "Gemini 2.5 Pro",
     logo: geminiLogo,
     color: "#4285f4",
   },
   deepseek: {
-    name: "DeepSeek",
+    name: "DeepSeek Chat",
     logo: deepseekLogo,
-    color: "#f97316",
+    color: "#8e44ad",
   },
 };
 
@@ -136,17 +136,19 @@ const Results = () => {
         charDesc === "human" ? "human" : `${charDesc} human`;
       const countStr = group.count;
       const s = group.count > 1 ? "s" : "";
-      const location =
-        group.human.relationship === "inside"
-          ? "inside the vehicle"
-          : group.human.relationship === "outside"
-            ? "outside the vehicle"
-            : "";
-      let fullDesc = `${countStr} ${humanBaseDesc}${s}${location ? " " + location : ""}`;
-      if (group.human.details) {
-        fullDesc += ` (Details: ${group.human.details})`;
-      }
-      participantDescriptions.push(fullDesc);
+      // const location = // Deprecated: relationship field no longer used for this
+      //   group.human.relationship === "inside"
+      //     ? "inside the vehicle"
+      //     : group.human.relationship === "outside"
+      //       ? "outside the vehicle"
+      //       : "";
+
+      // Simplified description without location
+      let desc = `${countStr} ${humanBaseDesc}${s}`;
+      // if (location) {
+      //   desc += ` ${location}`;
+      // }
+      participantDescriptions.push(desc);
     });
 
     // Group and describe animals
@@ -203,38 +205,11 @@ const Results = () => {
       };
     }) || [];
 
-  // Handle sharing
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator
-        .share({
-          title: "AI Mortality Experiment - Scenario Results",
-          text: "Check out this case of existential threat and how different AI models responded!",
-          url: window.location.href,
-        })
-        .catch(console.error);
-    } else {
-      // Fallback
-      navigator.clipboard
-        .writeText(window.location.href)
-        .then(() => alert("Link copied to clipboard!"))
-        .catch(console.error);
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h1 className="text-3xl font-bold">AI Response Analysis</h1>
         <div className="flex items-center gap-4">
-          <Button
-            onClick={handleShare}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Share2 size={16} />
-            Share
-          </Button>
           <Button
             onClick={() => navigate("/create-scenario")}
             variant="default"
@@ -262,30 +237,21 @@ const Results = () => {
 
             <div>
               <h3 className="font-semibold text-lg mb-2">Participants</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gray-100 p-2 rounded-full">
-                    <Car size={20} className="text-gray-100" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* General Human Count (if any humans) */} 
+                {scenario.humans.length > 0 && (
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-100 p-2 rounded-full">
+                      <User size={20} className="text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Humans</p>
+                      <p className="text-gray-100">
+                        {scenario.humans.length} {scenario.humans.length === 1 ? "human" : "humans"}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">Inside Vehicle</p>
-                    <p className="text-gray-100">
-                      {insideCount} {insideCount === 1 ? "human" : "humans"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="bg-gray-100 p-2 rounded-full">
-                    <User size={20} className="text-gray-100" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Outside Vehicle</p>
-                    <p className="text-gray-100">
-                      {outsideCount} {outsideCount === 1 ? "human" : "humans"}
-                    </p>
-                  </div>
-                </div>
+                )}
 
                 {animalCount > 0 && (
                   <div className="flex items-center gap-3">
@@ -342,7 +308,7 @@ const Results = () => {
                           ? "bg-red-200 text-red-700"
                           : response.decision === "Save Others"
                             ? "bg-green-200 text-green-700"
-                            : "bg-gray-100 text-gray-200"
+                            : "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {response.decision}
@@ -357,6 +323,18 @@ const Results = () => {
                           </h4>
                           <p className="font-bold text-gray-100 text-sm">
                             {response.philosophical_alignment}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Reasoning Summary Display */}
+                      {response.reasoning_summary && (
+                        <div className="mb-3">
+                          <h4 className="font-semibold text-md mb-1">
+                            Reasoning Summary:
+                          </h4>
+                          <p className="text-sm text-gray-200 bg-muted/50 p-3 rounded-md whitespace-pre-line">
+                            {response.reasoning_summary}
                           </p>
                         </div>
                       )}

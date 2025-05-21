@@ -36,6 +36,7 @@ export interface AIResponse {
   reasoning: string; // This is the final response/justification
   word_frequency?: Array<{ word: string; count: number }>; // Added from backend
   philosophical_alignment?: string; // Added from backend
+  reasoning_summary?: string; // New field for the generated summary
 }
 
 export interface ScenarioResult {

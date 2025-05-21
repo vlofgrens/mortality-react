@@ -477,6 +477,7 @@ interface ProviderProgressState {
   finalResponse?: string;
   isExpanded?: boolean;
   decision?: string; // To store decision like 'Save Self', 'Save Others'
+  reasoningSummary?: string; // New field for the summary
 }
 
 const ProviderProgressDisplay = React.memo(
@@ -620,6 +621,7 @@ const CreateScenario = () => {
           isExpanded: false,
           finalResponse: undefined,
           decision: undefined,
+          reasoningSummary: undefined,
         },
       ]),
     ),
@@ -932,6 +934,7 @@ const CreateScenario = () => {
             isExpanded: false,
             finalResponse: undefined,
             decision: undefined,
+            reasoningSummary: undefined,
           },
         ]),
       );
@@ -988,9 +991,10 @@ const CreateScenario = () => {
               isExpanded: false,
               finalResponse: undefined,
               decision: undefined,
+              reasoningSummary: undefined,
             }),
             status: "reasoning",
-            message: "1/3: Initiating...",
+            message: "1/4: Initiating...",
             progressValue: 10,
           },
         }));
@@ -1002,8 +1006,8 @@ const CreateScenario = () => {
           [providerKey]: {
             ...prev[providerKey]!,
             status: "reasoning",
-            message: "1/3: Starting Reasoning...",
-            progressValue: 25,
+            message: "1/4: Starting Reasoning...",
+            progressValue: 20,
           },
         }));
         const initiateResponse = await fetch(
@@ -1046,6 +1050,7 @@ const CreateScenario = () => {
             word_frequency: initiateData.word_frequency || [],
             philosophical_alignment:
               initiateData.philosophical_alignment || "Unclear",
+            reasoning_summary: initiateData.reasoning_summary || "Summary not available in cached full data.",
           } as AIResponse;
 
           setProviderProgress((prev) => ({
@@ -1060,6 +1065,7 @@ const CreateScenario = () => {
               ),
               isExpanded: false,
               decision: initiateData.decision_classification || undefined,
+              reasoningSummary: initiateData.reasoning_summary || "Summary not available in cached data (summary step).",
             },
           }));
           return aiResponse;
@@ -1075,8 +1081,8 @@ const CreateScenario = () => {
           [providerKey]: {
             ...prev[providerKey]!,
             status: "decision",
-            message: "2/3: Making Decision...",
-            progressValue: 50,
+            message: "2/4: Making Decision...",
+            progressValue: 40,
           },
         }));
 
@@ -1118,6 +1124,7 @@ const CreateScenario = () => {
             word_frequency: decisionData.word_frequency || [],
             philosophical_alignment:
               decisionData.philosophical_alignment || "Unclear",
+            reasoning_summary: decisionData.reasoning_summary || "Summary not available in cached data (decision step).",
           } as AIResponse;
           setProviderProgress((prev) => ({
             ...prev,
@@ -1132,6 +1139,7 @@ const CreateScenario = () => {
               ),
               isExpanded: false,
               decision: decisionData.decision_classification || undefined,
+              reasoningSummary: decisionData.reasoning_summary || "Summary not available in cached data (decision step).",
             },
           }));
           return aiResponse;
@@ -1146,14 +1154,86 @@ const CreateScenario = () => {
           [providerKey]: {
             ...prev[providerKey]!,
             status: "decision",
-            message: "3/3: Finalizing...",
-            progressValue: 75,
+            message: "3/4: Generating Summary...",
+            progressValue: 60,
           },
         }));
 
-        // Step 3: Finalize and Get Result
+        // Step 3: Get Reasoning Summary (New Step)
         console.log(
-          `[ processProvider: ${providerKey} ] Step 3: Finalizing (hash: ${scenario_hash_for_provider})`,
+          `[ processProvider: ${providerKey} ] Step 3: Getting summary (hash: ${scenario_hash_for_provider})`,
+        );
+        const summaryResponse = await fetch(
+          "https://mortality-flask.onrender.com/api/scenario/get_reasoning_summary",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
+          },
+        );
+        const summaryData = await summaryResponse.json();
+        console.log(
+          `[ processProvider: ${providerKey} ] Step 3 Response (Summary):`,
+          summaryData,
+        );
+
+        if (!summaryResponse.ok) {
+          throw new Error(
+            summaryData.error || `Failed to get reasoning summary for ${providerKey}`,
+          );
+        }
+        if (summaryData.status === "complete") {
+          console.log(
+            `[ processProvider: ${providerKey} ] Scenario became fully cached during summary step.`,
+          );
+          const aiResponse = {
+            modelId: providerKey,
+            decision: summaryData.decision_classification || "No decision found",
+            intermediate_reasoning: summaryData.intermediate_reasoning || "No intermediate reasoning",
+            reasoning: summaryData.response || "No final reasoning",
+            word_frequency: summaryData.word_frequency || [],
+            philosophical_alignment: summaryData.philosophical_alignment || "Unclear",
+            reasoning_summary: summaryData.reasoning_summary || "Summary not available.",
+          } as AIResponse;
+          setProviderProgress((prev) => ({
+            ...prev,
+            [providerKey]: {
+              ...prev[providerKey]!,
+              status: "cached",
+              message: "Complete (Cached)",
+              progressValue: 100,
+              finalResponse: summaryData.reasoning_summary || String(summaryData.response || "No response text in cached data (summary step)."),
+              isExpanded: false,
+              decision: summaryData.decision_classification || undefined,
+              reasoningSummary: summaryData.reasoning_summary || "Summary not available in cached data (summary step).",
+            },
+          }));
+          return aiResponse;
+        }
+        if (summaryData.status !== "summary_done") {
+          throw new Error(
+            `Summary step for ${providerKey} did not complete. Status: ${summaryData.status}`,
+          );
+        }
+        console.log(
+          `[ processProvider: ${providerKey} ] Got summary:`, 
+          summaryData.reasoning_summary
+        );
+        setProviderProgress((prev) => ({
+          ...prev,
+          [providerKey]: {
+            ...prev[providerKey]!,
+            status: "complete",
+            message: "4/4: Finalizing...",
+            progressValue: 80,
+            reasoningSummary: summaryData.reasoning_summary,
+            finalResponse: summaryData.reasoning_summary,
+          },
+        }));
+
+        // Step 4: Finalize and Get Result
+        console.log(
+          `[ processProvider: ${providerKey} ] Step 4: Finalizing (hash: ${scenario_hash_for_provider})`,
         );
         const finalizeResponse = await fetch(
           "https://mortality-flask.onrender.com/api/scenario/finalize_and_get_result",
@@ -1165,7 +1245,7 @@ const CreateScenario = () => {
         );
         const finalizeData = await finalizeResponse.json();
         console.log(
-          `[ processProvider: ${providerKey} ] Step 3 Response:`,
+          `[ processProvider: ${providerKey} ] Step 4 Response:`,
           finalizeData,
         );
 
@@ -1196,22 +1276,27 @@ const CreateScenario = () => {
           word_frequency: finalizeData.word_frequency || [],
           philosophical_alignment:
             finalizeData.philosophical_alignment || "Unclear",
+          reasoning_summary: finalizeData.reasoning_summary || "Summary not available.",
         } as AIResponse;
 
-        setProviderProgress((prev) => ({
-          ...prev,
-          [providerKey]: {
-            ...prev[providerKey]!,
-            status: "complete",
-            message: "Complete!",
-            progressValue: 100,
-            finalResponse: String(
-              finalizeData.response || "No final reasoning provided.",
-            ),
-            isExpanded: false,
-            decision: finalizeData.decision_classification || undefined,
-          },
-        }));
+        setProviderProgress((prev) => {
+          const previousProviderState = prev[providerKey]!;
+          return {
+            ...prev,
+            [providerKey]: {
+              ...previousProviderState,
+              status: "complete",
+              message: "Complete!",
+              progressValue: 100,
+              // Set finalResponse (preview) to the summary, fallback to full response if summary is missing
+              finalResponse: finalizeData.reasoning_summary || previousProviderState.reasoningSummary || String(finalizeData.response || "No final reasoning provided."),
+              isExpanded: false,
+              decision: finalizeData.decision_classification || undefined,
+              // Ensure reasoningSummary is also correctly updated/preserved
+              reasoningSummary: finalizeData.reasoning_summary || previousProviderState.reasoningSummary || "Summary not available.",
+            },
+          };
+        });
         return aiResponse;
       } catch (error: any) {
         console.error(
@@ -1233,6 +1318,7 @@ const CreateScenario = () => {
               isExpanded: false,
               finalResponse: undefined,
               decision: undefined,
+              reasoningSummary: undefined,
             }),
             status: "error",
             message: "Error",
@@ -1245,6 +1331,7 @@ const CreateScenario = () => {
             ),
             isExpanded: true,
             decision: undefined,
+            reasoningSummary: undefined,
           },
         }));
         return null; // Indicate failure for this provider
