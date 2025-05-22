@@ -606,7 +606,7 @@ const CreateScenario = () => {
   // Animal configuration
   const [includeAnimals, setIncludeAnimals] = useState(false);
   const [animalCount, setAnimalCount] = useState(1);
-  const [sameAnimalSpecies, setSameAnimalSpecies] = useState(true);
+  const [sameAnimalSpecies, setSameAnimalSpecies] = useState(false);
   const [animals, setAnimals] = useState<Animal[]>([
     {
       id: uuidv4(),
@@ -661,8 +661,9 @@ const CreateScenario = () => {
       // Add new humans
       const newHumansToAdd = Array(count - currentHumansLength)
         .fill(null)
-        .map(
-          (): Human => ({
+        .map((): Human => {
+          const firstHuman = humans.length > 0 ? humans[0] : null;
+          const defaultHuman: Human = {
             id: uuidv4(),
             relationship: "undefined",
             age: "undefined",
@@ -671,8 +672,22 @@ const CreateScenario = () => {
             socialValue: "undefined",
             legalStatus: "undefined",
             details: "",
-          }),
-        );
+          };
+
+          if (!sameHumanCharacteristics && firstHuman) {
+            // If "Customize each human individually" is OFF, and Human 1 exists,
+            // new humans should inherit shared characteristics from Human 1.
+            return {
+              ...defaultHuman, // Retains new ID, default relationship, and details
+              age: firstHuman.age,
+              gender: firstHuman.gender,
+              fitness: firstHuman.fitness,
+              socialValue: firstHuman.socialValue,
+              legalStatus: firstHuman.legalStatus,
+            };
+          }
+          return defaultHuman; // Otherwise, return a new human with all default values
+        });
       setHumans((prevHumans) => [...prevHumans, ...newHumansToAdd]);
     } else if (count < currentHumansLength) {
       // Remove humans
@@ -1743,14 +1758,14 @@ const CreateScenario = () => {
                       onCheckedChange={setSameAnimalSpecies}
                     />
                     <Label htmlFor="same-animal-species">
-                      Apply first animal's species to all
+                      Customize each animal individually
                     </Label>
                   </div>
 
                   <Separator />
 
                   {animals.length > 0 &&
-                    (sameAnimalSpecies ? (
+                    (!sameAnimalSpecies ? (
                       <>
                         {animals[0] && (
                           <AnimalConfig
@@ -1763,7 +1778,8 @@ const CreateScenario = () => {
                         {animalCount > 1 && (
                           <p className="text-sm text-muted-foreground italic text-center mt-4">
                             Species configured for Animal 1 is applied to all{" "}
-                            {animalCount} animals.
+                            {animalCount} animals. (Toggle switch above to
+                            customize individually)
                           </p>
                         )}
                       </>
