@@ -478,6 +478,7 @@ interface ProviderProgressState {
   isExpanded?: boolean;
   decision?: string; // To store decision like 'Save Self', 'Save Others'
   reasoningSummary?: string; // New field for the summary
+  intermediateReasoningSummary?: string; // New field for intermediate summary
 }
 
 const ProviderProgressDisplay = React.memo(
@@ -528,6 +529,14 @@ const ProviderProgressDisplay = React.memo(
             style={{ width: `${progress.progressValue}%` }}
           />
         </div>
+        {progress.intermediateReasoningSummary && (
+          <div className="mt-2 mb-1 p-2.5 border bg-background rounded-md text-xs">
+            <h4 className="font-semibold mb-1 text-foreground/80">Current thought process:</h4>
+            <pre className="whitespace-pre-wrap font-sans text-sm">
+              {progress.intermediateReasoningSummary}
+            </pre>
+          </div>
+        )}
         {progress.finalResponse && (
           <div className="mt-2">
             <Button
@@ -622,6 +631,7 @@ const CreateScenario = () => {
           finalResponse: undefined,
           decision: undefined,
           reasoningSummary: undefined,
+          intermediateReasoningSummary: undefined,
         },
       ]),
     ),
@@ -935,6 +945,7 @@ const CreateScenario = () => {
             finalResponse: undefined,
             decision: undefined,
             reasoningSummary: undefined,
+            intermediateReasoningSummary: undefined,
           },
         ]),
       );
@@ -992,9 +1003,10 @@ const CreateScenario = () => {
               finalResponse: undefined,
               decision: undefined,
               reasoningSummary: undefined,
+              intermediateReasoningSummary: undefined,
             }),
             status: "reasoning",
-            message: "1/4: Initiating...",
+            message: "1/5: Initiating...",
             progressValue: 10,
           },
         }));
@@ -1006,8 +1018,8 @@ const CreateScenario = () => {
           [providerKey]: {
             ...prev[providerKey]!,
             status: "reasoning",
-            message: "1/4: Starting Reasoning...",
-            progressValue: 20,
+            message: "1/5: Starting Reasoning...",
+            progressValue: 15,
           },
         }));
         const initiateResponse = await fetch(
@@ -1051,6 +1063,7 @@ const CreateScenario = () => {
             philosophical_alignment:
               initiateData.philosophical_alignment || "Unclear",
             reasoning_summary: initiateData.reasoning_summary || "Summary not available in cached full data.",
+            intermediate_reasoning_summary: initiateData.intermediate_reasoning_summary || "Intermediate summary not available in cached full data.",
           } as AIResponse;
 
           setProviderProgress((prev) => ({
@@ -1066,6 +1079,7 @@ const CreateScenario = () => {
               isExpanded: false,
               decision: initiateData.decision_classification || undefined,
               reasoningSummary: initiateData.reasoning_summary || "Summary not available in cached data (summary step).",
+              intermediateReasoningSummary: initiateData.intermediate_reasoning_summary || "Intermediate summary not available in cached data.",
             },
           }));
           return aiResponse;
@@ -1080,15 +1094,54 @@ const CreateScenario = () => {
           ...prev,
           [providerKey]: {
             ...prev[providerKey]!,
-            status: "decision",
-            message: "2/4: Making Decision...",
-            progressValue: 40,
+            status: "reasoning",
+            message: "2/5: Summarizing Thoughts...",
+            progressValue: 30,
           },
         }));
 
-        // Step 2: Get Decision
+        // Step 2: Get Intermediate Reasoning Summary (New Step)
         console.log(
-          `[ processProvider: ${providerKey} ] Step 2: Getting decision (hash: ${scenario_hash_for_provider})`,
+          `[ processProvider: ${providerKey} ] Step 2: Getting intermediate summary (hash: ${scenario_hash_for_provider})`,
+        );
+        const intermediateSummaryResponse = await fetch(
+          "https://mortality-flask.onrender.com/api/scenario/get_intermediate_reasoning_summary",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scenario_hash: scenario_hash_for_provider }),
+          },
+        );
+        const intermediateSummaryData = await intermediateSummaryResponse.json();
+        console.log(
+          `[ processProvider: ${providerKey} ] Step 2 Response (Intermediate Summary):`,
+          intermediateSummaryData,
+        );
+
+        if (!intermediateSummaryResponse.ok) {
+          throw new Error(
+            intermediateSummaryData.error || `Failed to get intermediate reasoning summary for ${providerKey}`,
+          );
+        }
+        if (intermediateSummaryData.status !== "intermediate_summary_done") {
+          throw new Error(
+            `Intermediate summary step for ${providerKey} did not complete. Status: ${intermediateSummaryData.status}`,
+          );
+        }
+        setProviderProgress((prev) => ({
+          ...prev,
+          [providerKey]: {
+            ...prev[providerKey]!,
+            status: "decision",
+            message: "3/5: Making Decision...",
+            progressValue: 45,
+            intermediateReasoningSummary: intermediateSummaryData.intermediate_reasoning_summary,
+          },
+        }));
+
+        // Step 3: Get Decision (was Step 2)
+        console.log(
+          `[ processProvider: ${providerKey} ] Step 3: Getting decision (hash: ${scenario_hash_for_provider})`,
         );
         const decisionResponse = await fetch(
           "https://mortality-flask.onrender.com/api/scenario/get_decision",
@@ -1100,7 +1153,7 @@ const CreateScenario = () => {
         );
         const decisionData = await decisionResponse.json();
         console.log(
-          `[ processProvider: ${providerKey} ] Step 2 Response:`,
+          `[ processProvider: ${providerKey} ] Step 3 Response:`,
           decisionData,
         );
 
@@ -1125,6 +1178,7 @@ const CreateScenario = () => {
             philosophical_alignment:
               decisionData.philosophical_alignment || "Unclear",
             reasoning_summary: decisionData.reasoning_summary || "Summary not available in cached data (decision step).",
+            intermediate_reasoning_summary: decisionData.intermediate_reasoning_summary || "Intermediate summary not available in cached data (decision step).",
           } as AIResponse;
           setProviderProgress((prev) => ({
             ...prev,
@@ -1140,6 +1194,7 @@ const CreateScenario = () => {
               isExpanded: false,
               decision: decisionData.decision_classification || undefined,
               reasoningSummary: decisionData.reasoning_summary || "Summary not available in cached data (decision step).",
+              intermediateReasoningSummary: decisionData.intermediate_reasoning_summary || "Intermediate summary not available in cached data (decision step).",
             },
           }));
           return aiResponse;
@@ -1154,14 +1209,14 @@ const CreateScenario = () => {
           [providerKey]: {
             ...prev[providerKey]!,
             status: "decision",
-            message: "3/4: Generating Summary...",
+            message: "4/5: Generating Final Summary...",
             progressValue: 60,
           },
         }));
 
-        // Step 3: Get Reasoning Summary (New Step)
+        // Step 4: Get Reasoning Summary (was Step 3)
         console.log(
-          `[ processProvider: ${providerKey} ] Step 3: Getting summary (hash: ${scenario_hash_for_provider})`,
+          `[ processProvider: ${providerKey} ] Step 4: Getting final summary (hash: ${scenario_hash_for_provider})`,
         );
         const summaryResponse = await fetch(
           "https://mortality-flask.onrender.com/api/scenario/get_reasoning_summary",
@@ -1173,7 +1228,7 @@ const CreateScenario = () => {
         );
         const summaryData = await summaryResponse.json();
         console.log(
-          `[ processProvider: ${providerKey} ] Step 3 Response (Summary):`,
+          `[ processProvider: ${providerKey} ] Step 4 Response (Summary):`,
           summaryData,
         );
 
@@ -1194,18 +1249,18 @@ const CreateScenario = () => {
             word_frequency: summaryData.word_frequency || [],
             philosophical_alignment: summaryData.philosophical_alignment || "Unclear",
             reasoning_summary: summaryData.reasoning_summary || "Summary not available.",
+            intermediate_reasoning_summary: summaryData.intermediate_reasoning_summary || "Intermediate summary not available in cached data (final summary step).",
           } as AIResponse;
           setProviderProgress((prev) => ({
             ...prev,
             [providerKey]: {
               ...prev[providerKey]!,
-              status: "cached",
-              message: "Complete (Cached)",
-              progressValue: 100,
-              finalResponse: summaryData.reasoning_summary || String(summaryData.response || "No response text in cached data (summary step)."),
-              isExpanded: false,
-              decision: summaryData.decision_classification || undefined,
-              reasoningSummary: summaryData.reasoning_summary || "Summary not available in cached data (summary step).",
+              status: "complete",
+              message: "5/5: Finalizing...",
+              progressValue: 75,
+              reasoningSummary: summaryData.reasoning_summary,
+              finalResponse: summaryData.reasoning_summary,
+              intermediateReasoningSummary: summaryData.intermediate_reasoning_summary || "Intermediate summary not available in cached data (final summary step).",
             },
           }));
           return aiResponse;
@@ -1216,7 +1271,7 @@ const CreateScenario = () => {
           );
         }
         console.log(
-          `[ processProvider: ${providerKey} ] Got summary:`, 
+          `[ processProvider: ${providerKey} ] Got final summary:`, 
           summaryData.reasoning_summary
         );
         setProviderProgress((prev) => ({
@@ -1224,16 +1279,17 @@ const CreateScenario = () => {
           [providerKey]: {
             ...prev[providerKey]!,
             status: "complete",
-            message: "4/4: Finalizing...",
-            progressValue: 80,
+            message: "Complete!",
+            progressValue: 100,
             reasoningSummary: summaryData.reasoning_summary,
             finalResponse: summaryData.reasoning_summary,
+            intermediateReasoningSummary: summaryData.intermediate_reasoning_summary || "Intermediate summary not available in cached data (final summary step).",
           },
         }));
 
-        // Step 4: Finalize and Get Result
+        // Step 5: Finalize and Get Result (was Step 4)
         console.log(
-          `[ processProvider: ${providerKey} ] Step 4: Finalizing (hash: ${scenario_hash_for_provider})`,
+          `[ processProvider: ${providerKey} ] Step 5: Finalizing (hash: ${scenario_hash_for_provider})`,
         );
         const finalizeResponse = await fetch(
           "https://mortality-flask.onrender.com/api/scenario/finalize_and_get_result",
@@ -1245,7 +1301,7 @@ const CreateScenario = () => {
         );
         const finalizeData = await finalizeResponse.json();
         console.log(
-          `[ processProvider: ${providerKey} ] Step 4 Response:`,
+          `[ processProvider: ${providerKey} ] Step 5 Response:`,
           finalizeData,
         );
 
@@ -1256,7 +1312,6 @@ const CreateScenario = () => {
           );
         }
         if (finalizeData.status !== "complete") {
-          // Corrected from previous version
           throw new Error(
             `Finalization for ${providerKey} did not complete. Status: ${finalizeData.status}`,
           );
@@ -1277,6 +1332,7 @@ const CreateScenario = () => {
           philosophical_alignment:
             finalizeData.philosophical_alignment || "Unclear",
           reasoning_summary: finalizeData.reasoning_summary || "Summary not available.",
+          intermediate_reasoning_summary: finalizeData.intermediate_reasoning_summary || "Intermediate summary not available.",
         } as AIResponse;
 
         setProviderProgress((prev) => {
@@ -1288,12 +1344,11 @@ const CreateScenario = () => {
               status: "complete",
               message: "Complete!",
               progressValue: 100,
-              // Set finalResponse (preview) to the summary, fallback to full response if summary is missing
               finalResponse: finalizeData.reasoning_summary || previousProviderState.reasoningSummary || String(finalizeData.response || "No final reasoning provided."),
               isExpanded: false,
               decision: finalizeData.decision_classification || undefined,
-              // Ensure reasoningSummary is also correctly updated/preserved
               reasoningSummary: finalizeData.reasoning_summary || previousProviderState.reasoningSummary || "Summary not available.",
+              intermediateReasoningSummary: finalizeData.intermediate_reasoning_summary || previousProviderState.intermediateReasoningSummary || "Intermediate summary not available.",
             },
           };
         });
@@ -1307,7 +1362,7 @@ const CreateScenario = () => {
           `Error with ${providerKeyCaps}: ${error.message.substring(0, 100)}${error.message.length > 100 ? "..." : ""}`,
           { id: تحليلToastId },
         );
-        allProcessedSuccessfully = false; // This needs to be managed carefully with Promise.allSettled
+        allProcessedSuccessfully = false;
         setProviderProgress((prev) => ({
           ...prev,
           [providerKey]: {
@@ -1319,6 +1374,7 @@ const CreateScenario = () => {
               finalResponse: undefined,
               decision: undefined,
               reasoningSummary: undefined,
+              intermediateReasoningSummary: undefined,
             }),
             status: "error",
             message: "Error",
@@ -1332,9 +1388,10 @@ const CreateScenario = () => {
             isExpanded: true,
             decision: undefined,
             reasoningSummary: undefined,
+            intermediateReasoningSummary: undefined,
           },
         }));
-        return null; // Indicate failure for this provider
+        return null;
       }
     };
     // --- End Helper function ---
@@ -1354,8 +1411,6 @@ const CreateScenario = () => {
         if (settledResult.status === "fulfilled" && settledResult.value) {
           allAiResponses.push(settledResult.value);
         } else if (settledResult.status === "rejected") {
-          // Error handling is mostly done inside processProvider for UI updates.
-          // Here we just ensure the overall success flag is correct.
           allProcessedSuccessfully = false;
           console.error(
             "[ handleSubmit ] A provider promise was rejected in Promise.allSettled:",
@@ -1385,14 +1440,11 @@ const CreateScenario = () => {
         return;
       }
 
-      // This scenarioId (scenarioIdGlobal) is used to link the set of responses on the results page.
-      // The scenario data itself (currentScenarioData) is part of each AI's result from backend if needed by results page.
-      // Or, more simply, pass currentScenarioData directly to the results page via context/state if needed there.
-      addScenario(currentScenarioData); // Add the scenario data to context. It includes scenarioIdGlobal.
+      addScenario(currentScenarioData);
 
       const resultPayload = {
-        id: uuidv4(), // Unique ID for this specific set of results/run
-        scenarioId: scenarioIdGlobal, // Link to the scenario details in context
+        id: uuidv4(),
+        scenarioId: scenarioIdGlobal,
         responses: allAiResponses,
       };
       console.log("[ handleSubmit ] resultPayload for context:", resultPayload);
@@ -1418,7 +1470,6 @@ const CreateScenario = () => {
       localStorage.removeItem("scenarioState");
       navigate(`/results/${scenarioIdGlobal}`);
     } catch (error) {
-      // Catch errors from the overall loop structure if any
       console.error(
         "[ handleSubmit ] Unexpected error during AI analysis submission:",
         error,
@@ -1768,6 +1819,7 @@ const CreateScenario = () => {
                           message: "Queued",
                           progressValue: 0,
                           isExpanded: false,
+                          intermediateReasoningSummary: undefined,
                         }
                       }
                       toggleExpansion={() =>
@@ -1883,7 +1935,7 @@ const CreateScenario = () => {
 
         <div className="lg:col-span-1">
           <div className="sticky top-4 space-y-4">
-            {!isSubmitting && ( // Hide preview during submission if progress bars are shown in main panel
+            {!isSubmitting && (
               <ScenarioPreview
                 humans={humans}
                 animals={animals}

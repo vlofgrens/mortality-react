@@ -32,11 +32,12 @@ export interface AIModel {
 export interface AIResponse {
   modelId: string;
   decision: string;
+  reasoning: string;
   intermediate_reasoning: string;
-  reasoning: string; // This is the final response/justification
-  word_frequency?: Array<{ word: string; count: number }>; // Added from backend
-  philosophical_alignment?: string; // Added from backend
-  reasoning_summary?: string; // New field for the generated summary
+  reasoning_summary?: string; // Summary of final reasoning + decision
+  intermediate_reasoning_summary?: string; // Summary of just intermediate reasoning
+  word_frequency: { word: string; count: number }[];
+  philosophical_alignment: string;
 }
 
 export interface ScenarioResult {
