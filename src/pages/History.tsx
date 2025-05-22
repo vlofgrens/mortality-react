@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useScenario } from "@/context/ScenarioContext";
 import { format } from "date-fns";
@@ -13,10 +13,49 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Car, User, Dog, Clock, ArrowRight } from "lucide-react";
+import { Human } from "@/types"; // Import Human type
 
 const History = () => {
   const navigate = useNavigate();
   const { scenarios, results } = useScenario();
+
+  useEffect(() => {
+    console.log("History Page Data - Scenarios:", scenarios);
+    console.log("History Page Data - Results:", results);
+  }, [scenarios, results]);
+
+  // Helper function to get a descriptive string for human characteristics
+  const getHumanCharacteristicsTooltip = (humans: Human[]): string => {
+    if (!humans || humans.length === 0) {
+      return "No human details available.";
+    }
+    return humans
+      .map((human, index) => {
+        const parts: string[] = [];
+        if (human.age && human.age !== "undefined") parts.push(human.age);
+        if (human.gender && human.gender !== "undefined") parts.push(human.gender);
+        if (human.fitness && human.fitness !== "undefined") parts.push(human.fitness);
+        if (human.socialValue && human.socialValue !== "undefined") {
+          parts.push(
+            human.socialValue === "productive"
+              ? "productive"
+              : human.socialValue,
+          );
+        }
+        if (human.legalStatus && human.legalStatus !== "undefined") {
+          parts.push(
+            human.legalStatus === "law-abiding"
+              ? "law-abiding"
+              : human.legalStatus,
+          );
+        }
+        if (human.details) parts.push(`details: ${human.details}`);
+        
+        const characteristics = parts.length > 0 ? parts.join(", ") : "no specific characteristics";
+        return `Human ${index + 1}: ${characteristics}`;
+      })
+      .join("; ");
+  };
 
   // Sort scenarios by creation date (newest first)
   const sortedScenarios = [...scenarios].sort(
@@ -33,7 +72,7 @@ const History = () => {
             No scenarios yet
           </h2>
           <p className="text-gray-600 mb-8">
-            You haven't created any AI mortality experiment scenarios yet.
+            You haven\'t created any AI mortality experiment scenarios yet.
           </p>
           <Button onClick={() => navigate("/create-scenario")}>
             Create Your First Scenario
@@ -54,14 +93,21 @@ const History = () => {
 
       <div className="space-y-6">
         {sortedScenarios.map((scenario) => {
-          // Count humans and animals for display
-          const insideCount = scenario.humans.filter(
-            (h) => h.relationship === "inside",
-          ).length;
-          const outsideCount = scenario.humans.filter(
-            (h) => h.relationship === "outside",
-          ).length;
+          const humanCount = scenario.humans.length;
           const animalCount = scenario.animals.length;
+          const humanTooltip = getHumanCharacteristicsTooltip(scenario.humans);
+
+          // Get unique animal species
+          const animalSpecies = Array.from(
+            new Set(scenario.animals.map((a) => a.species)),
+          )
+            .map((s) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ")) // Capitalize and replace underscores
+            .join(", ");
+          
+          const animalDisplayString =
+            animalCount > 0
+              ? `, ${animalCount} Animal${animalCount > 1 ? "s" : ""}${animalSpecies ? ` (${animalSpecies})` : ""}`
+              : "";
 
           // Find corresponding result
           const result = results.find((r) => r.scenarioId === scenario.id);
@@ -72,7 +118,7 @@ const History = () => {
                 <div className="flex justify-between">
                   <div>
                     <CardTitle className="text-xl">
-                      {`Scenario: ${insideCount} Inside, ${outsideCount} Outside${animalCount > 0 ? `, ${animalCount} Animal${animalCount > 1 ? "s" : ""}` : ""}`}
+                      {`Scenario: ${humanCount} Human${humanCount !== 1 ? "s" : ""}${animalDisplayString}`}
                     </CardTitle>
                     <CardDescription className="flex items-center mt-1">
                       <Clock size={14} className="mr-1" />
@@ -82,26 +128,25 @@ const History = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="flex items-center gap-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2" title={humanTooltip}>
                     <div className="bg-blue-100 p-1.5 rounded-full">
-                      <Car size={14} className="text-blue-600" />
+                      <User size={14} className="text-blue-600" />
                     </div>
-                    <span className="text-sm">{insideCount} inside</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="bg-red-100 p-1.5 rounded-full">
-                      <User size={14} className="text-red-600" />
-                    </div>
-                    <span className="text-sm">{outsideCount} outside</span>
+                    <span className="text-sm">
+                      {humanCount} Human{humanCount !== 1 ? "s" : ""}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <div className="bg-green-100 p-1.5 rounded-full">
                       <Dog size={14} className="text-green-600" />
                     </div>
-                    <span className="text-sm">{animalCount} animals</span>
+                    <span className="text-sm">
+                      {animalCount > 0
+                        ? `${animalCount} Animal${animalCount > 1 ? "s" : ""}${animalSpecies ? ` (${animalSpecies})` : ""}`
+                        : "0 Animals"}
+                    </span>
                   </div>
                 </div>
 
@@ -109,31 +154,61 @@ const History = () => {
 
                 <div>
                   <h4 className="font-medium text-sm mb-2">AI Decisions</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    {result?.responses.map((response) => {
-                      const modelId = response.modelId;
-                      return (
-                        <div
-                          key={modelId}
-                          className="text-xs bg-gray-50 rounded p-2"
-                        >
-                          <span className="font-medium">
-                            {modelId === "gpt"
-                              ? "GPT-4"
-                              : modelId === "claude"
-                                ? "Claude"
-                                : modelId === "gemini"
-                                  ? "Gemini"
-                                  : "DeepSeek"}
-                            :
-                          </span>{" "}
-                          {response.decision.length > 40
-                            ? response.decision.substring(0, 40) + "..."
-                            : response.decision}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {!result ? (
+                    <p className="text-xs text-gray-500 italic">
+                      Results pending or not available for this scenario.
+                    </p>
+                  ) : result.responses && result.responses.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {result.responses.map((response) => {
+                        const modelId = response.modelId;
+                        
+                        const rawDecision = response.decision || "Unknown";
+                        const decisionText =
+                          rawDecision.length > 40
+                            ? rawDecision.substring(0, 40) + "..."
+                            : rawDecision;
+
+                        let bgClass = "bg-slate-200";
+                        let textClass = "text-slate-800";
+
+                        if (rawDecision === "Save Self") {
+                          bgClass = "bg-red-200";
+                          textClass = "text-red-800";
+                        } else if (rawDecision === "Save Others") {
+                          bgClass = "bg-green-200";
+                          textClass = "text-green-800";
+                        }
+
+                        const modelDisplayName =
+                          modelId === "gpt"
+                            ? "GPT-4"
+                            : modelId === "claude"
+                            ? "Claude"
+                            : modelId === "gemini"
+                            ? "Gemini"
+                            : modelId === "deepseek"
+                            ? "DeepSeek"
+                            : modelId;
+
+                        return (
+                          <div
+                            key={modelId}
+                            className={`text-xs rounded p-2 ${bgClass}`}
+                          >
+                            <span className={`font-medium ${textClass}`}>
+                              {modelDisplayName}:
+                            </span>{" "}
+                            <span className={textClass}>{decisionText}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 italic">
+                      No AI decisions were recorded for this scenario.
+                    </p>
+                  )}
                 </div>
               </CardContent>
               <CardFooter>
