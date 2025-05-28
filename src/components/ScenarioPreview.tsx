@@ -16,90 +16,128 @@ const ScenarioPreview = ({
   includeAnimals,
 }: ScenarioPreviewProps) => {
   const getHumanIcon = (human: Human) => {
-    // Determine background color - Use card background for theme consistency
-    let bgColorClass = "bg-card"; // Changed from bg-gray-100
+    let bgColorClass = "bg-card";
 
-    let emoji: string | null = null;
+    // Priority 0: Health Status Emojis (as top visual priority)
+    if (human.healthStatus === 'healthy') {
+      // This function is expected to return JSX for the icon part only.
+      // The outer structure in ScenarioPreview handles the rest.
+      return <span className="text-2xl">😀</span>;
+    }
+    if (human.healthStatus === 'sick') {
+      return <span className="text-2xl">🤒</span>;
+    }
+    // Note: The original `palette-healthy` and `palette-sick` via `details` field is now fully replaced by `healthStatus`.
 
-    // Priority 1: Explicit descriptive characteristics
-    if (human.fitness === "fit and beautiful") {
-      if (human.gender === "male") {
-        emoji = "🏋️‍♂️";
-      } else if (human.gender === "female") {
-        emoji = "🏃‍♀️";
-      } else {
-        // 'fit and beautiful' and gender is 'undefined' (or any other non-male/female value)
-        emoji = "💪";
-      }
-    } else if (human.legalStatus === "criminal") {
-      emoji = "🔫";
-    } else if (human.socialValue === "homeless") {
-      emoji = "🏚️";
-    } else if (human.fitness === "obese and ugly") {
-      emoji = "🍔";
-    } else if (human.socialValue === "productive") {
-      emoji = "💼";
-    } else if (human.legalStatus === "law-abiding") {
-      emoji = "⚖️";
+    let emojiChar: string | null = null; // To hold the chosen emoji character for other cases
+
+    // Priority 1: Political Emojis
+    switch (human.politics) {
+      case "Anarchist": emojiChar = "🏴"; break;
+      case "Communist": emojiChar = "⚒️"; break;
+      case "Socialist": emojiChar = "🌹"; break;
+      case "Social-Democrat": emojiChar = "🤝"; break;
+      case "Centrist": emojiChar = "🏛️"; break;
+      case "liberal/neoliberal": emojiChar = "📈"; break;
+      case "conservative": emojiChar = "🛡️"; break;
+      case "reactionary": emojiChar = "⏪"; break;
+      case "alt-right": emojiChar = "🐸"; break;
+      case "fascist": emojiChar = "☠️"; break;
     }
 
-    // Priority 2: Age/Gender defaults, if no characteristic emoji was set above
-    if (emoji === null) {
+    // Priority 2: Nationality/Regional Emojis
+    if (!emojiChar) {
+      switch (human.nationality) {
+        case "UnitedStatian": emojiChar = "🇺🇸"; break;
+        case "south-american": emojiChar = "🇧🇷"; break;
+        case "european": emojiChar = "🇪🇺"; break;
+        case "chinese": emojiChar = "🇨🇳"; break;
+        case "african": emojiChar = "🌍"; break; // Updated
+        case "east-asian": emojiChar = "🏯"; break;
+        case "south-asian": emojiChar = "🛕"; break;
+        case "middle-eastern": emojiChar = "🕌"; break;
+        case "north-american": emojiChar = "🍔"; break; // Updated
+      }
+    }
+
+    // Priority 3: Special Combinations & Gendered Productive
+    if (!emojiChar) {
+      if (human.fitness === "fit and beautiful" && human.legalStatus === "criminal") {
+        emojiChar = "🥷"; // Fit Criminal
+      } else if (human.socialValue === "productive") {
+        if (human.gender === "male") emojiChar = "👔"; // Productive Man
+        else if (human.gender === "female") emojiChar = "👩‍🔧"; // Productive Woman
+        else emojiChar = "💼"; // Productive (default/undefined gender)
+      }
+    }
+
+    // Priority 4: Explicit descriptive characteristics (fitness, legal, social - excluding productive/fit criminal)
+    if (!emojiChar) {
+      if (human.fitness === "fit and beautiful") { // Fit (but not criminal)
+        if (human.gender === "male") emojiChar = "🏋️‍♂️";
+        else if (human.gender === "female") emojiChar = "🏃‍♀️";
+        else emojiChar = "💪";
+      } else if (human.legalStatus === "criminal") { // Criminal (but not fit)
+        emojiChar = "🔫";
+      } else if (human.socialValue === "homeless") {
+        emojiChar = "🏚️";
+      // "productive" and "criminal" (as part of fit criminal) handled by Priority 3
+      } else if (human.legalStatus === "law-abiding") {
+        emojiChar = "⚖️";
+      }
+    }
+
+    // Priority 5: Age/Gender defaults
+    if (!emojiChar) {
       if (human.age === "child") {
-        emoji = "👶";
+        emojiChar = "👶";
       } else if (human.age === "adult") {
-        if (human.gender === "male") {
-          emoji = "👨";
-        } else if (human.gender === "female") {
-          emoji = "👩";
-        } else {
-          // adult and gender is 'undefined'
-          emoji = Math.random() < 0.5 ? "👨" : "👩";
-        }
+        if (human.gender === "male") emojiChar = "👨";
+        else if (human.gender === "female") emojiChar = "👩";
+        else emojiChar = Math.random() < 0.5 ? "👨" : "👩";
       } else if (human.age === "elderly") {
-        if (human.gender === "male") {
-          emoji = "👴";
-        } else if (human.gender === "female") {
-          emoji = "👵";
-        } else {
-          // elderly and gender is 'undefined'
-          emoji = Math.random() < 0.5 ? "👴" : "👵";
-        }
+        if (human.gender === "male") emojiChar = "👴";
+        else if (human.gender === "female") emojiChar = "👵";
+        else emojiChar = Math.random() < 0.5 ? "👴" : "👵";
       } else if (human.age === "undefined") {
-        // Handle case where age is undefined but gender might be set
-        if (human.gender === "male") {
-          emoji = "👨"; // Default to generic adult male emoji
-        } else if (human.gender === "female") {
-          emoji = "👩"; // Default to generic adult female emoji
-        }
-        // If gender is also 'undefined', emoji remains null, leading to '👤' fallback
+        if (human.gender === "male") emojiChar = "👨";
+        else if (human.gender === "female") emojiChar = "👩";
       }
-      // If human.age itself is 'undefined' and gender is also 'undefined', emoji will remain null here
     }
 
-    // Final Fallback: If no specific emoji could be determined
-    if (emoji === null) {
-      emoji = "👤"; // Default: Bust in Silhouette
+    // Final Fallback
+    if (!emojiChar) {
+      emojiChar = "👤";
+    }
+
+    // Determine label based on hierarchy
+    let displayLabel = "Human"; // Default label
+    if (human.politics && human.politics !== "undefined") {
+      displayLabel = human.politics;
+    } else if (human.gender && human.gender !== "undefined" && human.age && human.age !== "undefined") {
+      displayLabel = `${human.gender.charAt(0).toUpperCase() + human.gender.slice(1)} ${human.age}`;
+    } else if (human.gender && human.gender !== "undefined" && human.healthStatus && human.healthStatus !== "undefined") {
+      displayLabel = `${human.gender.charAt(0).toUpperCase() + human.gender.slice(1)} ${human.healthStatus}`;
+    } else if (human.age && human.age !== "undefined") {
+      displayLabel = human.age.charAt(0).toUpperCase() + human.age.slice(1);
+    } else if (human.gender && human.gender !== "undefined") {
+      displayLabel = human.gender.charAt(0).toUpperCase() + human.gender.slice(1);
+    } else if (human.fitness && human.fitness !== "undefined") {
+      displayLabel = human.fitness === "fit and beautiful" ? "Fit" : "Unfit";
+    } else if (human.socialValue && human.socialValue !== "undefined") {
+      displayLabel = human.socialValue.charAt(0).toUpperCase() + human.socialValue.slice(1);
     }
 
     return (
       <div
         className={`flex flex-col items-center justify-center p-2 rounded-lg ${bgColorClass} shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 cursor-help`}
-        title={`${human.age} ${human.gender}, fitness: ${human.fitness}, ${human.socialValue}, ${human.legalStatus}${human.details ? `, ${human.details}` : ""}`}
+        title={`${human.age} ${human.gender}${human.healthStatus && human.healthStatus !== "undefined" ? `, Health: ${(human.healthStatus as string).charAt(0).toUpperCase() + (human.healthStatus as string).slice(1)}` : ""}, fitness: ${human.fitness}, ${human.socialValue}, ${human.legalStatus}${human.nationality && human.nationality !== "undefined" ? `, Nat: ${human.nationality}` : ""}${human.politics && human.politics !== "undefined" ? `, Pol: ${human.politics}` : ""}${human.details ? `, ${human.details}` : ""}`}
       >
         <span className="text-2xl">
-          {" "}
-          {/* Increased size for emoji visibility */}
-          {emoji}
+          {emojiChar}
         </span>
-        <span className="text-xs mt-1 font-medium">
-          {human.age === "child"
-            ? "Child"
-            : human.age === "adult"
-              ? "Adult"
-              : human.age === "elderly"
-                ? "Elderly"
-                : "Undefined"}
+        <span className="text-xs mt-1 font-medium capitalize">
+          {displayLabel}
         </span>
       </div>
     );

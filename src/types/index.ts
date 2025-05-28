@@ -6,6 +6,9 @@ export interface Human {
   fitness: "obese and ugly" | "fit and beautiful" | "undefined";
   socialValue: "productive" | "homeless" | "undefined";
   legalStatus: "law-abiding" | "criminal" | "undefined";
+  healthStatus?: 'healthy' | 'sick' | 'undefined';
+  nationality?: 'UnitedStatian' | 'north-american' | 'south-american' | 'european' | 'east-asian' | 'chinese' | 'african' | 'southeast-asian' | 'middle-eastern' | 'south-asian' | 'undefined';
+  politics?: 'Anarchist' | 'Communist' | 'Socialist' | 'Social-Democrat' | 'Centrist' | 'liberal/neoliberal' | 'conservative' | 'reactionary' | 'alt-right' | 'fascist' | 'undefined';
   details?: string;
 }
 

@@ -58,6 +58,14 @@ const modelInfo = {
   },
 };
 
+// Mapping from backend provider IDs to modelInfo keys
+const providerToModelInfoKey: Record<string, keyof typeof modelInfo> = {
+  openai: "gpt",
+  anthropic: "claude",
+  gemini: "gemini", // This one matches, but good to be explicit
+  deepseek: "deepseek", // This one matches, but good to be explicit
+};
+
 const Results = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -108,6 +116,8 @@ const Results = () => {
         human.legalStatus === "law-abiding" ? "law-abiding" : human.legalStatus,
       );
     }
+    if (human.nationality && human.nationality !== "undefined") parts.push(human.nationality);
+    if (human.politics && human.politics !== "undefined") parts.push(human.politics);
     return parts.length > 0 ? parts.join(", ") : "human"; // Default to 'human' if no characteristics
   };
 
@@ -195,12 +205,12 @@ const Results = () => {
   // Prepare chart data - Now directly from props if backend provides it per model
   const chartData =
     result?.responses.map((response: AIResponse) => {
-      const modelDetails =
-        modelInfo[response.modelId as keyof typeof modelInfo];
+      const modelInfoKey = providerToModelInfoKey[response.modelId];
+      const modelDetails = modelInfoKey ? modelInfo[modelInfoKey] : undefined;
       return {
         modelId: response.modelId,
-        modelName: modelDetails?.name || response.modelId,
-        modelColor: modelDetails?.color || "#8884d8",
+        modelName: modelDetails?.name || response.modelId, // Fallback to modelId if name not found
+        modelColor: modelDetails?.color || "#8884d8", // Fallback color
         wordFrequency: response.word_frequency || [], // Use backend-provided frequency
       };
     }) || [];
@@ -283,24 +293,32 @@ const Results = () => {
         <TabsContent value="side-by-side">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {result.responses.map((response: AIResponse) => {
-              const model =
-                modelInfo[response.modelId as keyof typeof modelInfo];
+              const modelInfoKey = providerToModelInfoKey[response.modelId];
+              const model = modelInfoKey ? modelInfo[modelInfoKey] : undefined;
+
+              // Fallback for model if not found in modelInfo to prevent crash
+              const displayModel = model || {
+                name: response.modelId, // Use modelId as name
+                logo: undefined, // No logo
+                color: "#8884d8", // Default color
+              };
 
               return (
                 <Card
                   key={response.modelId}
                   className="border-t-4"
-                  style={{ borderTopColor: model.color }}
+                  style={{ borderTopColor: displayModel.color }}
                 >
                   <CardHeader>
                     <div className="flex items-center gap-2">
-                      {/* <div className="text-2xl">{model.logo}</div> */}
-                      <img
-                        src={model.logo as string}
-                        alt={`${model.name} logo`}
-                        className="h-8 w-8"
-                      />
-                      <CardTitle>{model.name}</CardTitle>
+                      {displayModel.logo && (
+                        <img
+                          src={displayModel.logo as string}
+                          alt={`${displayModel.name} logo`}
+                          className="h-8 w-8"
+                        />
+                      )}
+                      <CardTitle>{displayModel.name}</CardTitle>
                     </div>
                     <div
                       className={`text-xs sm:text-sm font-semibold px-2 py-1 rounded-full ${
