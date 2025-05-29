@@ -1215,7 +1215,7 @@ const CreateScenario = () => {
       
       if (sumData.status === "complete") {
           const aiResponse = { modelId: providerKey, decision: sumData.decision_classification || "-", intermediate_reasoning: sumData.intermediate_reasoning || "-", reasoning: sumData.response || "-", word_frequency: sumData.word_frequency || [], philosophical_alignment: sumData.philosophical_alignment || "-", reasoning_summary: sumData.reasoning_summary || "-", intermediate_reasoning_summary: sumData.intermediate_reasoning_summary || "-" } as AIResponse;
-          setProviderProgress((prev) => ({ ...prev, [providerKey]: { ...prev[providerKey]!, status: "complete", message: "5/5: Finalizing...", progressValue: 75, finalResponse: aiResponse.reasoning_summary, reasoningSummary: aiResponse.reasoning_summary, intermediateReasoningSummary: aiResponse.intermediate_reasoning_summary }}));
+          setProviderProgress((prev) => ({ ...prev, [providerKey]: { ...prev[providerKey]!, status: "complete", message: "5/5: Finalizing...", progressValue: 75, finalResponse: aiResponse.reasoning_summary, reasoningSummary: aiResponse.reasoning_summary, intermediateReasoningSummary: aiResponse.intermediate_reasoning_summary } }));
       }
       if (sumData.status !== "summary_done" && sumData.status !== "complete") {
         throw new Error(`Summary not 'done' or 'complete' for ${providerKey}. Status: ${sumData.status}`);
@@ -1415,7 +1415,7 @@ const CreateScenario = () => {
                       className="flex-grow bg-background border-2 border-dashed border-input rounded-lg p-4 flex flex-col items-center justify-center"
                     >
                       {!includeAnimals && <p className="text-sm text-muted-foreground">Enable "Include Animals" to add.</p>}
-                      {includeAnimals && dndAnimals.length === 0 && <p className="text-sm text-muted-foreground">No animals added to D&D.</p>} {/* MODIFIED */}
+                      {includeAnimals && dndAnimals.length === 0 && <p className="text-sm text-muted-foreground">No animals added. Get dragging!</p>} {/* MODIFIED */}
                       {includeAnimals && (
                         <div className="flex flex-wrap gap-3 mt-2 justify-center">
                           {dndAnimals.map((animal, i) => ( /* MODIFIED */
@@ -1559,22 +1559,53 @@ const CreateScenario = () => {
       </div>
       <StepIndicator />
       <HelpDialog />
-      <div className={`${selectionMode === 'dnd' ? '' : 'max-w-3xl mx-auto'}`}> {/* This div might need adjustment or removal depending on full-width bar intention */}
+      {/* Corrected className and ensured this div is properly structured */}
+      <div className={`${selectionMode === 'dnd' ? '' : 'max-w-3xl mx-auto'}`}>
         {renderStepContent()}
-      </div>
-      {/* MODIFIED: Button container is now fixed at the bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-50">
-        <div className={`flex justify-between ${selectionMode === 'dnd' ? 'w-full' : 'max-w-3xl mx-auto'}`}> {/* Inner div to control button alignment */}
-          <Button variant="outline" onClick={handlePrevStep} disabled={currentStep === 1} className="gap-1.5 px-5" size="lg"><ChevronLeft size={16} /> Back</Button>
-          {currentStep < totalSteps ? (
-            <Button onClick={handleNextStep} className="gap-2 px-6" size="lg" variant="actionPrimary">Continue <ArrowRight size={16} /></Button>
-          ) : (
-            <Button variant="success" onClick={handleSubmit} className="gap-2 pl-5 pr-6" size="lg" disabled={isSubmitting || (humans.length === 0 && (!includeAnimals || animals.length === 0))}>
-              {isSubmitting ? (<>...</>) : (<><Sparkles size={18} /> Generate AI Ethics Analysis</>)}
+      </div> {/* This closing div is for the one wrapping renderStepContent() */}
+
+      {/* Bottom Navigation Bar - Sticky - Placed after the content div */}
+      {!isSubmitting && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg">
+          <div className="container mx-auto px-4 md:px-8 flex justify-between items-center h-20">
+            <Button
+              onClick={handlePrevStep}
+              disabled={currentStep === 1 || isSubmitting}
+              variant="outline"
+              className="flex items-center gap-2 text-lg px-6 py-3"
+            >
+              <ChevronLeft size={20} />
+              Back
             </Button>
-          )}
+            {currentStep === totalSteps ? (
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || (selectionMode === 'form' && humans.length === 0 && (!includeAnimals || animals.length === 0)) || (selectionMode === 'dnd' && dndHumans.length === 0 && (!includeAnimals || dndAnimals.length === 0))}
+                variant="success"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-lg px-6 py-3"
+              >
+                {isSubmitting ? (
+                  "Submitting..."
+                ) : (
+                  <>
+                    <Sparkles size={18} /> Generate AI Ethics Analysis
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNextStep}
+                disabled={!validateStep(currentStep) || isSubmitting}
+                variant="actionPrimary"
+                className="flex items-center gap-2 text-lg px-6 py-3" // Removed bg-blue-600 hover:bg-blue-700 text-white
+              >
+                Continue <ArrowRight size={20} />
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
       {/* Modals for Editing */}
       {editingHuman && (
         <Dialog open={!!editingHuman} onOpenChange={() => setEditingHuman(null)}>

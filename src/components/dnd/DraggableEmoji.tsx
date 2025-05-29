@@ -8,12 +8,14 @@ export interface DraggableEmojiProps {
   label: string; // e.g., "Child", "Dog", "Productive Human"
   type: 'human' | 'animal';
   data: Record<string, any>; // Data to associate with the emoji (e.g., { age: "child" } or { species: "dog" })
+  detailedDescription?: string; // ADDED: For hover tooltips
 }
 
-const DraggableEmoji: React.FC<DraggableEmojiProps> = ({ id, emoji, label, type, data }) => {
+const DraggableEmoji: React.FC<DraggableEmojiProps> = ({ id, emoji, label, type, data, detailedDescription }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: id,
-    data: { type, emoji, label, ...data }, // Pass all relevant data for the drop event
+    // Pass all relevant data for the drop event, including detailedDescription if needed by the drop handler, though primarily for tooltip here
+    data: { type, emoji, label, ...data, detailedDescription }, 
   });
 
   const style: React.CSSProperties = {
@@ -37,7 +39,7 @@ const DraggableEmoji: React.FC<DraggableEmojiProps> = ({ id, emoji, label, type,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes} title={detailedDescription || label}>
       <span style={{ fontSize: '2rem', marginBottom: '2px' }}>{emoji}</span>
       <span style={{ fontSize: '0.75rem' }}>{label}</span>
     </div>

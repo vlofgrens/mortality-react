@@ -2,7 +2,7 @@ import React from 'react';
 import DraggableEmoji, { DraggableEmojiProps } from './DraggableEmoji';
 
 // Define a type for the items in the palette
-export type PaletteItem = Omit<DraggableEmojiProps, 'id'> & { baseId: string; category?: string };
+export type PaletteItem = Omit<DraggableEmojiProps, 'id'> & { baseId: string; category?: string; detailedDescription?: string };
 
 interface EmojiPaletteProps {
   items: PaletteItem[];
@@ -58,6 +58,7 @@ const EmojiPalette: React.FC<EmojiPaletteProps> = ({ items, title }) => {
                 label={item.label}
                 type={item.type}
                 data={item.data}
+                detailedDescription={item.detailedDescription}
               />
             ))}
           </div>
