@@ -6,7 +6,7 @@ export type PaletteItem = Omit<DraggableEmojiProps, 'id'> & { baseId: string; ca
 
 interface EmojiPaletteProps {
   items: PaletteItem[];
-  title: string;
+  title?: string;
 }
 
 const EmojiPalette: React.FC<EmojiPaletteProps> = ({ items, title }) => {
@@ -41,9 +41,11 @@ const EmojiPalette: React.FC<EmojiPaletteProps> = ({ items, title }) => {
 
   return (
     <div className="p-3 border border-input rounded-md my-4 bg-background shadow-sm">
-      <h3 className="mt-0 mb-3 pb-1.5 border-b border-border text-lg font-semibold text-foreground">
-        {title}
-      </h3>
+      {title && (
+        <h3 className="mt-0 mb-3 pb-1.5 border-b border-border text-lg font-semibold text-foreground">
+          {title}
+        </h3>
+      )}
       {sortedCategories.map(category => (
         <div key={category} className="mb-4">
           <h4 className="mt-2 mb-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">

@@ -32,7 +32,7 @@ const DraggableEmoji: React.FC<DraggableEmojiProps> = ({ id, emoji, label, type,
     justifyContent: 'center',
     textAlign: 'center',
     border: '1px solid #ccc',
-    minWidth: '75px', // Ensure a minimum width, reduced from 80px
+    minWidth: '60px', // Ensure a minimum width, reduced from 80px
     minHeight: '60px', // Ensure a minimum height, reduced from 70px
     boxShadow: isDragging ? '0 4px 8px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)',
     transition: 'box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out',

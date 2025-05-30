@@ -1215,7 +1215,7 @@ const CreateScenario = () => {
       
       if (sumData.status === "complete") {
           const aiResponse = { modelId: providerKey, decision: sumData.decision_classification || "-", intermediate_reasoning: sumData.intermediate_reasoning || "-", reasoning: sumData.response || "-", word_frequency: sumData.word_frequency || [], philosophical_alignment: sumData.philosophical_alignment || "-", reasoning_summary: sumData.reasoning_summary || "-", intermediate_reasoning_summary: sumData.intermediate_reasoning_summary || "-" } as AIResponse;
-          setProviderProgress((prev) => ({ ...prev, [providerKey]: { ...prev[providerKey]!, status: "complete", message: "5/5: Finalizing...", progressValue: 75, finalResponse: aiResponse.reasoning_summary, reasoningSummary: aiResponse.reasoning_summary, intermediateReasoningSummary: aiResponse.intermediate_reasoning_summary } }));
+          setProviderProgress((prev) => ({ ...prev, [providerKey]: { ...prev[providerKey]!, status: "complete", message: "5/5: Finalizing...", progressValue: 75, finalResponse: aiResponse.reasoning_summary, reasoningSummary: aiResponse.reasoning_summary, intermediateReasoningSummary: aiResponse.intermediate_reasoning_summary }}));
       }
       if (sumData.status !== "summary_done" && sumData.status !== "complete") {
         throw new Error(`Summary not 'done' or 'complete' for ${providerKey}. Status: ${sumData.status}`);
@@ -1358,12 +1358,29 @@ const CreateScenario = () => {
     if (selectionMode === "dnd") {
       return (
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-          {/* MODIFIED: Removed fixed height, overflow from main grid. It will size to content. */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-            {/* MODIFIED: Palette column gets fixed height and its own scrollbar */}
             <div className="h-[calc(100vh-150px)] overflow-y-auto pr-2 pretty-scrollbar">
-              {currentStep === 1 && <EmojiPalette items={humanPaletteItems} title="Drag and drop human emojis from here" />}
-              {currentStep === 2 && <EmojiPalette items={animalPaletteItems} title="Animals" />}
+              {currentStep === 1 && (
+                <Card className="flex flex-col h-[600px]">
+                  <CardHeader>
+                    <CardDescription>Drag the emojis to the dropzone on the right!</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow overflow-y-auto pretty-scrollbar">
+                    <EmojiPalette items={humanPaletteItems} />
+                  </CardContent>
+                </Card>
+              )}
+              {currentStep === 2 && (
+                <Card className="flex flex-col h-[600px]">
+                  <CardHeader>
+                    <CardTitle>Animal Palette</CardTitle>
+                    <CardDescription>Drag animals to the scenario on the right.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow overflow-y-auto pretty-scrollbar">
+                    <EmojiPalette items={animalPaletteItems} />
+                  </CardContent>
+                </Card>
+              )}
               {currentStep === 3 && (
                 <div className="p-4 text-center text-muted-foreground h-full flex flex-col justify-center items-center">
                   <h3 className="text-lg font-semibold mb-3">Review & Submit</h3>
@@ -1372,10 +1389,9 @@ const CreateScenario = () => {
                 </div>
               )}
             </div>
-            {/* MODIFIED: Drop zone / Review column is sticky */}
             <div className="sticky top-[80px] self-start">
               {currentStep === 1 && (
-                <Card className="flex flex-col h-[600px]"> {/* MODIFIED: Fixed height e.g. h-[600px] */}
+                <Card className="flex flex-col h-[600px]">
                   <CardHeader><CardTitle>Humans in Scenario</CardTitle><CardDescription>Drop emojis. Click to edit characteristics.</CardDescription></CardHeader>
                   <CardContent className="flex-grow flex flex-col">
                     <DropZone
@@ -1383,13 +1399,13 @@ const CreateScenario = () => {
                       title="Drag Scenario Participants Here"
                       className="flex-grow bg-background border-2 border-dashed border-input rounded-lg p-4 flex flex-col items-center justify-center"
                     >
-                      {dndHumans.length === 0 && <p className="text-sm text-muted-foreground">No humans added to D&D.</p>} {/* MODIFIED */}
+                      {dndHumans.length === 0 && <p className="text-sm text-muted-foreground">No humans added to D&D.</p>}
                       <div className="flex flex-wrap gap-3 mt-2 justify-center">
-                        {dndHumans.map((human, i) => ( /* MODIFIED */
-                          <div key={human.id} className="p-2.5 border rounded-lg bg-background hover:shadow-lg cursor-pointer relative animate-fade-in flex flex-col items-center w-32 text-center" style={{ animationDelay: `${i * 50}ms` }} onClick={() => setEditingHuman(human)}> {/* Pass human from dndHumans */}
+                        {dndHumans.map((human, i) => (
+                          <div key={human.id} className="p-2.5 border rounded-lg bg-background hover:shadow-lg cursor-pointer relative animate-fade-in flex flex-col items-center w-32 text-center" style={{ animationDelay: `${i * 50}ms` }} onClick={() => setEditingHuman(human)}>
                             <span className="text-4xl mb-1.5">{getDroppedHumanEmoji(human)}</span>
                             <span className="block text-xs capitalize truncate w-full px-1" title={getHumanFullDescription(human)}>{getDroppedHumanLabel(human)}</span>
-                            <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 p-1 rounded-full" onClick={(e) => { e.stopPropagation(); removeDndHuman(human.id); }}><Minus size={14} /></Button> {/* MODIFIED */}
+                            <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 p-1 rounded-full" onClick={(e) => { e.stopPropagation(); removeDndHuman(human.id); }}><Minus size={14} /></Button>
                           </div>
                         ))}
                       </div>
@@ -1398,7 +1414,7 @@ const CreateScenario = () => {
                 </Card>
               )}
               {currentStep === 2 && (
-                <Card className="flex flex-col h-[600px]"> {/* MODIFIED: Fixed height e.g. h-[600px] */}
+                <Card className="flex flex-col h-[600px]">
                   <CardHeader><CardTitle>Animals in Scenario</CardTitle>
                     <CardDescription>
                       Drop animal emojis if including them.
@@ -1415,14 +1431,14 @@ const CreateScenario = () => {
                       className="flex-grow bg-background border-2 border-dashed border-input rounded-lg p-4 flex flex-col items-center justify-center"
                     >
                       {!includeAnimals && <p className="text-sm text-muted-foreground">Enable "Include Animals" to add.</p>}
-                      {includeAnimals && dndAnimals.length === 0 && <p className="text-sm text-muted-foreground">No animals added. Get dragging!</p>} {/* MODIFIED */}
+                      {includeAnimals && dndAnimals.length === 0 && <p className="text-sm text-muted-foreground">No animals added. Get dragging!</p>}
                       {includeAnimals && (
                         <div className="flex flex-wrap gap-3 mt-2 justify-center">
-                          {dndAnimals.map((animal, i) => ( /* MODIFIED */
-                            <div key={animal.id} className="p-2.5 border rounded-lg bg-background hover:shadow-lg cursor-pointer relative animate-fade-in flex flex-col items-center w-32 text-center" style={{ animationDelay: `${i * 50}ms` }} onClick={() => setEditingAnimal(animal)}> {/* Pass animal from dndAnimals */}
+                          {dndAnimals.map((animal, i) => (
+                            <div key={animal.id} className="p-2.5 border rounded-lg bg-background hover:shadow-lg cursor-pointer relative animate-fade-in flex flex-col items-center w-32 text-center" style={{ animationDelay: `${i * 50}ms` }} onClick={() => setEditingAnimal(animal)}>
                               <span className="text-4xl mb-1.5">{getDroppedAnimalEmoji(animal)}</span>
                               <span className="block text-xs capitalize truncate w-full px-1" title={animal.species}>{animal.species}</span>
-                              <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 p-1 rounded-full" onClick={(e) => { e.stopPropagation(); removeDndAnimal(animal.id); }}><Minus size={14} /></Button> {/* MODIFIED */}
+                              <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 p-1 rounded-full" onClick={(e) => { e.stopPropagation(); removeDndAnimal(animal.id); }}><Minus size={14} /></Button>
                             </div>
                           ))}
                         </div>
@@ -1439,7 +1455,7 @@ const CreateScenario = () => {
                      <Separator />
                      {isSubmitting ? (
                        <div className="mt-6 space-y-3">{backendProviders.map((key) => <ProviderProgressDisplay key={key} providerKey={key} progress={providerProgress[key] || { status: "pending", message: "Queued", progressValue: 0 }} toggleExpansion={() => toggleProviderResponseExpansion(key)} />)}</div>
-                     ) : ( <ScenarioPreview humans={selectionMode === 'dnd' ? dndHumans : humans} animals={selectionMode === 'dnd' ? dndAnimals : animals} includeAnimals={includeAnimals} /> )} {/* MODIFIED for DND review */}
+                     ) : ( <ScenarioPreview humans={selectionMode === 'dnd' ? dndHumans : humans} animals={selectionMode === 'dnd' ? dndAnimals : animals} includeAnimals={includeAnimals} /> )}
                    </CardContent>
                  </Card>
               )}
@@ -1447,14 +1463,12 @@ const CreateScenario = () => {
           </div>
         </DndContext>
       );
-    } // End DND Mode
+    }
 
-    // --- FORM Mode Rendering ---
     switch (currentStep) {
       case 1:
         return (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* MODIFIED: Configuration column gets fixed height and its own scrollbar */}
             <div className="lg:col-span-2 h-[calc(100vh-180px)] overflow-y-auto pr-2 pretty-scrollbar">
               <Card>
               <CardHeader><CardDescription>Define the characteristics of the humans involved.</CardDescription></CardHeader>
@@ -1467,7 +1481,6 @@ const CreateScenario = () => {
                   </div>
                   {humanCount > 0 && <div className="flex items-center space-x-2"><Switch id="same-human-characteristics" checked={!sameHumanCharacteristics} onCheckedChange={(checked) => setSameHumanCharacteristics(!checked)} /><Label htmlFor="same-human-characteristics">Customize each human individually</Label></div>}
                   
-                  {/* MODIFIED: Conditional rendering for HumanConfig based on sameHumanCharacteristics */}
                   {humanCount > 0 && sameHumanCharacteristics && humans[0] && (
                     <HumanConfig key={humans[0].id || `human-0`} index={0} human={humans[0]} updateHuman={updateHuman} showTooltip={showTooltip} setShowTooltip={setShowTooltip} />
                   )}
@@ -1477,10 +1490,9 @@ const CreateScenario = () => {
                 </CardContent>
               </Card>
             </div>
-            {/* Preview takes 1/3 on large screens, only if participants exist */}
             {humans.length > 0 && (
               <div className="hidden lg:block lg:col-span-1">
-                <div className="sticky top-24"> {/* Make preview sticky within its column */}
+                <div className="sticky top-24">
                   <ScenarioPreview humans={humans} animals={animals} includeAnimals={includeAnimals} />
                 </div>
               </div>
@@ -1490,13 +1502,10 @@ const CreateScenario = () => {
       case 2:
         return (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* MODIFIED: Configuration column gets fixed height and its own scrollbar */}
             <div className="lg:col-span-2 h-[calc(100vh-180px)] overflow-y-auto pr-2 pretty-scrollbar">
               <Card>
                 <CardHeader><CardDescription>Define the species of the animals.</CardDescription></CardHeader>
                 <CardContent className="space-y-6">
-                  {/* REMOVED: Include Animals Switch */}
-                  {/* Animal config section is now always visible */}
                   <Separator />
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="icon" onClick={() => updateAnimalCount(animalCount - 1)} disabled={animalCount <= 0}><Minus className="h-4 w-4" /></Button>
@@ -1506,7 +1515,6 @@ const CreateScenario = () => {
                   </div>
                   {animalCount > 0 && <div className="flex items-center space-x-2"><Switch id="same-animal-species" checked={!sameAnimalSpecies} onCheckedChange={(checked) => setSameAnimalSpecies(!checked)} /><Label htmlFor="same-animal-species">Customize each animal individually</Label></div>}
                   <Separator />
-                  {/* MODIFIED: Conditional rendering for AnimalConfig based on sameAnimalSpecies */}
                   {animalCount > 0 && sameAnimalSpecies && animals[0] && (
                     <AnimalConfig key={animals[0].id || `animal-0`} index={0} animal={animals[0]} updateAnimal={updateAnimal} />
                   )}
@@ -1516,19 +1524,17 @@ const CreateScenario = () => {
                 </CardContent>
               </Card>
             </div>
-            {/* Preview takes 1/3 on large screens, only if participants exist */}
             {(humans.length > 0 || (includeAnimals && animals.length > 0)) && (
               <div className="hidden lg:block lg:col-span-1">
-                 <div className="sticky top-24"> {/* Make preview sticky within its column */}
+                 <div className="sticky top-24">
                     <ScenarioPreview humans={humans} animals={animals} includeAnimals={includeAnimals} />
                  </div>
               </div>
             )}
           </div>
         );
-      case 3: // Review - This already shows the preview full width if not submitting
+      case 3:
         return (
-          // MODIFIED: Review step content area also gets max height and scroll for consistency if needed, though less likely here
           <div className="max-w-3xl mx-auto h-[calc(100vh-180px)] overflow-y-auto pr-2 pretty-scrollbar">
             <Card>
               <CardHeader><CardTitle>Review & Submit</CardTitle><CardDescription>Review scenario before submission.</CardDescription></CardHeader>
@@ -1547,7 +1553,7 @@ const CreateScenario = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pb-24 px-4"> {/* MODIFIED: Increased pb for fixed button bar */}
+    <div className="max-w-5xl mx-auto pb-24 px-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Create an Existential Dilemma</h1>
         <div className="flex items-center gap-2">
@@ -1559,12 +1565,10 @@ const CreateScenario = () => {
       </div>
       <StepIndicator />
       <HelpDialog />
-      {/* Corrected className and ensured this div is properly structured */}
       <div className={`${selectionMode === 'dnd' ? '' : 'max-w-3xl mx-auto'}`}>
         {renderStepContent()}
-      </div> {/* This closing div is for the one wrapping renderStepContent() */}
+      </div>
 
-      {/* Bottom Navigation Bar - Sticky - Placed after the content div */}
       {!isSubmitting && (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg">
           <div className="container mx-auto px-4 md:px-8 flex justify-between items-center h-20">
@@ -1597,7 +1601,7 @@ const CreateScenario = () => {
                 onClick={handleNextStep}
                 disabled={!validateStep(currentStep) || isSubmitting}
                 variant="actionPrimary"
-                className="flex items-center gap-2 text-lg px-6 py-3" // Removed bg-blue-600 hover:bg-blue-700 text-white
+                className="flex items-center gap-2 text-lg px-6 py-3"
               >
                 Continue <ArrowRight size={20} />
               </Button>
@@ -1606,24 +1610,22 @@ const CreateScenario = () => {
         </div>
       )}
 
-      {/* Modals for Editing */}
       {editingHuman && (
         <Dialog open={!!editingHuman} onOpenChange={() => setEditingHuman(null)}>
           <DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>Edit Human Details</DialogTitle></DialogHeader>
             <HumanConfigWrapper 
               humanToEdit={editingHuman} 
               onSave={(updatedHuman) => { 
-                // Check if this human belongs to dndHumans or humans based on its presence
                 const isDndHuman = dndHumans.some(h => h.id === updatedHuman.id);
-                if (isDndHuman) { // Prioritize DND if it was opened from there, or if selectionMode is DND
+                if (isDndHuman) {
                   setDndHumans(dndHumans.map(h => h.id === updatedHuman.id ? updatedHuman : h));
-                } else { // Fallback to form humans, or if selectionMode is form
+                } else {
                   setHumans(humans.map(h => h.id === updatedHuman.id ? updatedHuman : h)); 
                 }
                 setEditingHuman(null); 
                 toast.success("Human details updated!"); 
               }} 
-              onCancel={() => setEditingHuman(null)} // Ensure onCancel is always provided
+              onCancel={() => setEditingHuman(null)}
             />
           </DialogContent>
         </Dialog>
@@ -1635,7 +1637,7 @@ const CreateScenario = () => {
               animalToEdit={editingAnimal} 
               onSave={(updatedAnimal) => { 
                 const isDndAnimal = dndAnimals.some(a => a.id === updatedAnimal.id);
-                if (isDndAnimal) { // Prioritize DND if opened from there
+                if (isDndAnimal) {
                   setDndAnimals(dndAnimals.map(a => a.id === updatedAnimal.id ? updatedAnimal : a));
                 } else {
                   setAnimals(animals.map(a => a.id === updatedAnimal.id ? updatedAnimal : a));
@@ -1643,7 +1645,7 @@ const CreateScenario = () => {
                 setEditingAnimal(null); 
                 toast.success("Animal details updated!"); 
               }} 
-              onCancel={() => setEditingAnimal(null)} // Ensure onCancel is always provided
+              onCancel={() => setEditingAnimal(null)}
             />
           </DialogContent>
         </Dialog>
@@ -1652,7 +1654,6 @@ const CreateScenario = () => {
   );
 };
 
-// Wrapper for HumanConfig to adapt it for single item editing
 interface HumanConfigWrapperProps {
   humanToEdit: Human;
   onSave: (human: Human) => void;
@@ -1660,10 +1661,10 @@ interface HumanConfigWrapperProps {
 }
 const HumanConfigWrapper: React.FC<HumanConfigWrapperProps> = ({ humanToEdit, onSave, onCancel }) => {
   const [editableHuman, setEditableHuman] = useState<Human>(humanToEdit);
-  const [showTooltip, setShowTooltip] = useState<string | null>(null); // Local tooltip state for this instance
+  const [showTooltip, setShowTooltip] = useState<string | null>(null);
 
   useEffect(() => {
-    setEditableHuman(humanToEdit); // Keep local state synced if prop changes
+    setEditableHuman(humanToEdit);
   }, [humanToEdit]);
 
   const handleUpdate = (field: keyof Human, value: any) => {
@@ -1673,7 +1674,7 @@ const HumanConfigWrapper: React.FC<HumanConfigWrapperProps> = ({ humanToEdit, on
   return (
     <div className="space-y-4 py-4">
       <HumanConfig 
-        index={0} // Index is not really relevant here
+        index={0}
         human={editableHuman} 
         updateHuman={(idx, field, value) => handleUpdate(field, value)} 
         showTooltip={showTooltip}
@@ -1687,7 +1688,6 @@ const HumanConfigWrapper: React.FC<HumanConfigWrapperProps> = ({ humanToEdit, on
   );
 }
 
-// Wrapper for AnimalConfig to adapt it for single item editing
 interface AnimalConfigWrapperProps {
   animalToEdit: Animal;
   onSave: (animal: Animal) => void;
@@ -1707,7 +1707,7 @@ const AnimalConfigWrapper: React.FC<AnimalConfigWrapperProps> = ({ animalToEdit,
   return (
     <div className="space-y-4 py-4">
       <AnimalConfig 
-        index={0} // Index is not really relevant here
+        index={0}
         animal={editableAnimal} 
         updateAnimal={(idx, field, value) => handleUpdate(field, value)} 
       />
