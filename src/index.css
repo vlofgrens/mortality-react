@@ -136,4 +136,35 @@
   .scenario-card {
     @apply bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300;
   }
+
+  .pretty-scrollbar {
+    /* For webkit browsers (Chrome, Safari, Edge) */
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: hsl(var(--muted));
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: hsl(var(--border));
+      border-radius: 4px;
+      border: 1px solid hsl(var(--muted));
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--accent));
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: hsl(var(--muted));
+    }
+
+    /* For Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) hsl(var(--muted));
+  }
 }

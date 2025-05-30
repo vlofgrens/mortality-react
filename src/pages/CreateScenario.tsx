@@ -1359,9 +1359,10 @@ const CreateScenario = () => {
       return (
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-            <div className="h-[calc(100vh-150px)] overflow-y-auto pr-2 pretty-scrollbar">
+            {/* Removed overflow-y-auto and pretty-scrollbar from this container to prevent conflicting scrollbars */}
+            <div className="h-[calc(100vh-150px)]">
               {currentStep === 1 && (
-                <Card className="flex flex-col h-[600px]">
+                <Card className="flex flex-col h-full">
                   <CardHeader>
                     <CardDescription>Drag the emojis to the dropzone on the right!</CardDescription>
                   </CardHeader>
@@ -1371,7 +1372,7 @@ const CreateScenario = () => {
                 </Card>
               )}
               {currentStep === 2 && (
-                <Card className="flex flex-col h-[600px]">
+                <Card className="flex flex-col h-full">
                   <CardHeader>
                     <CardTitle>Animal Palette</CardTitle>
                     <CardDescription>Drag animals to the scenario on the right.</CardDescription>
