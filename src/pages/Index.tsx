@@ -129,10 +129,6 @@ const Index = () => {
           <h2 className="text-3xl font-bold mb-6 text-white">
             Ready to Explore?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-xl mx-auto">
-            Craft your own ethical dilemmas and see how different AI models
-            respond.
-          </p>
           <Link to="/create-scenario">
             <Button size="lg" className="gap-2">
               Create Your Own Scenario
