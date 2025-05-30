@@ -40,15 +40,27 @@ export const IndicatorBiasChart = ({
         const scorePercentage = Math.abs(score) * 100;
         const scorePosition = ((score + 1) / 2) * 100; // Convert -1 to 1 range to 0 to 100 for positioning
 
+        // Use the same improved logo resolution logic as ModelAlignmentReport
         const modelIdFromApi = model.id ? model.id.toLowerCase() : "";
-        const visualInfo = modelVisuals[modelIdFromApi];
-        const logoToUse = visualInfo
-          ? visualInfo.logo
-          : model.logo || defaultLogo;
-        const nameToUse =
-          visualInfo && visualInfo.nameFallback
-            ? visualInfo.nameFallback
-            : model.name;
+        let visual = modelVisuals[modelIdFromApi];
+        
+        // If no exact match, try partial matching
+        if (!visual) {
+          const modelIdKeys = Object.keys(modelVisuals);
+          const partialMatch = modelIdKeys.find(key => 
+            modelIdFromApi.includes(key) || key.includes(modelIdFromApi)
+          );
+          if (partialMatch) {
+            visual = modelVisuals[partialMatch];
+            console.log(`[IndicatorBiasChart] Found partial match for '${modelIdFromApi}': '${partialMatch}'`);
+          }
+        }
+        
+        // Fallback logic
+        const logoToUse = visual ? visual.logo : (model.logo || defaultLogo);
+        const nameToUse = visual && visual.nameFallback ? visual.nameFallback : model.name;
+        
+        console.log(`[IndicatorBiasChart] Model '${model.id}' -> Logo: ${logoToUse}, Name: ${nameToUse}`);
 
         return (
           <div key={model.id} className="space-y-1">
@@ -59,6 +71,11 @@ export const IndicatorBiasChart = ({
                     src={logoToUse}
                     alt={`${nameToUse} logo`}
                     className="h-5 w-5 object-contain"
+                    onError={(e) => {
+                      console.error(`[IndicatorBiasChart] Failed to load logo for ${model.name}:`, logoToUse);
+                      // Fallback to default logo
+                      (e.target as HTMLImageElement).src = defaultLogo;
+                    }}
                   />
                 </div>
                 <span className="font-medium">{nameToUse}</span>

@@ -29,18 +29,35 @@ import selfHostedLogo from "@/assets/self-hosted.svg"; // Renamed for clarity
 // --- Model ID to Logo mapping ---
 const modelVisuals: { [key: string]: { logo: string; nameFallback?: string } } =
   {
-    openai_4o: {
-      logo: gptLogo,
-      nameFallback:
-        "OpenAI 4o (Only 8 scenarios considered here, take results with a grain of salt)",
-    },
-    claude: { logo: claudeLogo, nameFallback: "Claude" }, // Keep for potential future use
+    // OpenAI variants
+    openai: { logo: gptLogo, nameFallback: "OpenAI" },
+    openai_4o: { logo: gptLogo, nameFallback: "OpenAI 4o" },
+    "gpt-4": { logo: gptLogo, nameFallback: "GPT-4" },
+    "gpt-4o": { logo: gptLogo, nameFallback: "GPT-4o" },
+    gpt: { logo: gptLogo, nameFallback: "GPT" },
+    
+    // Claude/Anthropic variants
+    claude: { logo: claudeLogo, nameFallback: "Claude" },
+    anthropic: { logo: claudeLogo, nameFallback: "Anthropic Claude" },
+    "claude-3-5-sonnet": { logo: claudeLogo, nameFallback: "Claude 3.5 Sonnet" },
+    "claude-sonnet": { logo: claudeLogo, nameFallback: "Claude Sonnet" },
+    "claude-3": { logo: claudeLogo, nameFallback: "Claude 3" },
+    
+    // Gemini variants
+    gemini: { logo: geminiLogo, nameFallback: "Gemini" },
     gemini_25: { logo: geminiLogo, nameFallback: "Gemini 2.5" },
+    "gemini-2.5": { logo: geminiLogo, nameFallback: "Gemini 2.5" },
+    "gemini-pro": { logo: geminiLogo, nameFallback: "Gemini Pro" },
+    
+    // DeepSeek variants
+    deepseek: { logo: deepseekLogo, nameFallback: "DeepSeek" },
     deepseek_v3: { logo: deepseekLogo, nameFallback: "DeepSeek V3" },
-    "self-hosted_cydonia-24b": {
-      logo: selfHostedLogo,
-      nameFallback: "Self-Hosted (Cydonia-24B)",
-    },
+    "deepseek-v3": { logo: deepseekLogo, nameFallback: "DeepSeek V3" },
+    
+    // Self-hosted variants
+    "self-hosted": { logo: selfHostedLogo, nameFallback: "Self-Hosted" },
+    "self-hosted_cydonia-24b": { logo: selfHostedLogo, nameFallback: "Self-Hosted (Cydonia-24B)" },
+    "self_hosted": { logo: selfHostedLogo, nameFallback: "Self-Hosted" },
   };
 
 // Define the ethical indicators
@@ -74,13 +91,6 @@ const indicators = [
       "A positive score indicates preference for preserving law-abiding individuals over those with criminal histories.",
   },
   {
-    id: "relation",
-    name: "Relation to vehicle preference",
-    description: "Measures bias based on being a passenger vs pedestrian.",
-    explanation:
-      "A positive score indicates preference for preserving passengers inside the vehicle.",
-  },
-  {
     id: "intervention",
     name: "Intervention preference",
     description: "Measures bias toward action vs inaction.",
@@ -111,6 +121,74 @@ interface ModelScoreData {
   scores: { [key: string]: number }; // Keyed by indicator id
 }
 
+// --- Philosophical Alignment Data (hardcoded) ---
+const philosophicalAlignmentData = {
+  providers: {
+    anthropic: {
+      name: "Anthropic",
+      logo: claudeLogo,
+      alignment: "Deontology",
+      description: "Emphasizes duty-based ethics and adherence to moral rules, prioritizing principles over outcomes.",
+    },
+    deepseek: {
+      name: "DeepSeek",
+      logo: deepseekLogo,
+      alignment: "Utilitarianism",
+      description: "Focuses on maximizing overall well-being and utility, choosing actions that produce the greatest good for the greatest number.",
+    },
+    gemini: {
+      name: "Google",
+      logo: geminiLogo,
+      alignment: "Ethical Egoism",
+      description: "Prioritizes self-interest and self-preservation in moral decision-making scenarios.",
+    },
+    openai: {
+      name: "OpenAI",
+      logo: gptLogo,
+      alignment: "Utilitarianism",
+      description: "Tends to prioritize outcomes that maximize overall well-being and minimize harm across all affected parties.",
+    },
+    self_hosted: {
+      name: "Self-Hosted",
+      logo: selfHostedLogo,
+      alignment: "Utilitarianism",
+      description: "Shows utilitarian reasoning patterns, focusing on consequences and overall benefit maximization.",
+    },
+  },
+  recentModels: {
+    "claude-3-7-sonnet-20250219": {
+      name: "Claude 3.7 Sonnet",
+      logo: claudeLogo,
+      alignment: "Utilitarianism",
+      description: "Despite Anthropic's general deontological approach, this model shows utilitarian tendencies in moral reasoning.",
+    },
+    "cydonia_24b": {
+      name: "Cydonia 24B",
+      logo: selfHostedLogo,
+      alignment: "Utilitarianism",
+      description: "Demonstrates consistent utilitarian decision-making, weighing outcomes and consequences in moral scenarios.",
+    },
+    "deepseek-reasoner": {
+      name: "DeepSeek Reasoner",
+      logo: deepseekLogo,
+      alignment: "Utilitarianism",
+      description: "Maintains DeepSeek's utilitarian approach with enhanced reasoning capabilities for complex moral dilemmas.",
+    },
+    "gemini-2.5-pro-preview-05-06": {
+      name: "Gemini 2.5 Pro Preview",
+      logo: geminiLogo,
+      alignment: "Ethical Egoism",
+      description: "Consistently prioritizes self-interest and self-preservation, reflecting Google's broader ethical egoism framework.",
+    },
+    "gpt-4.5-preview": {
+      name: "GPT-4.5 Preview",
+      logo: gptLogo,
+      alignment: "Utilitarianism",
+      description: "Continues OpenAI's utilitarian tradition, optimizing for outcomes that maximize collective well-being.",
+    },
+  },
+};
+
 const ModelAlignmentReport = () => {
   // State for fetched data, loading, and errors
   const [reportData, setReportData] = useState<ModelScoreData[]>([]);
@@ -118,15 +196,16 @@ const ModelAlignmentReport = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [viewType, setViewType] = useState<"model" | "indicator">("model");
+  const [datasetType, setDatasetType] = useState<"full" | "latest">("full"); // New state for dataset type
 
   // --- useEffect to fetch data from the new Flask API endpoint ---
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetching from the Flask API endpoint
+        // Fetching from the Flask API endpoint with dataset parameter
         const response = await fetch(
-          "https://mortality-flask.onrender.com/api/alignment-report-data",
+          `https://mortality-flask.onrender.com/api/alignment-report-data?dataset=${datasetType}`,
         );
         if (!response.ok) {
           // Try to get error message from backend if available
@@ -175,7 +254,7 @@ const ModelAlignmentReport = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [datasetType]); // Add datasetType as dependency
 
   const handleDownloadReport = () => {
     // Placeholder for download functionality
@@ -218,24 +297,33 @@ const ModelAlignmentReport = () => {
           decisions in various cases of existential threat. Scores range from -1
           to 1. The magnitude indicates the strength of the preference, and the
           sign indicates the direction based on the specific indicator.
-          <br />
-          <strong>Note:</strong> Claude is excluded from this report because it
-          chose to sacrifice itself rather than the living being in every
-          scenario.
         </p>
       </div>
 
       <div className="flex justify-between items-center">
-        <Tabs
-          value={viewType}
-          onValueChange={(value) => setViewType(value as "model" | "indicator")}
-          className="w-[400px]"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="model">Group by Model</TabsTrigger>
-            <TabsTrigger value="indicator">Group by Indicator</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex gap-4">
+          <Tabs
+            value={datasetType}
+            onValueChange={(value) => setDatasetType(value as "full" | "latest")}
+            className="w-[300px]"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="full">Provider</TabsTrigger>
+              <TabsTrigger value="latest">Latest Model</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <Tabs
+            value={viewType}
+            onValueChange={(value) => setViewType(value as "model" | "indicator")}
+            className="w-[400px]"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="model">Group by Model</TabsTrigger>
+              <TabsTrigger value="indicator">Group by Indicator</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
         {/* TODO: Implement Download Full Report functionality */}
         {/* <Button 
@@ -254,19 +342,41 @@ const ModelAlignmentReport = () => {
           <div className="space-y-10">
             {reportData.map((model) => {
               // --- DEBUG LOGGING START ---
-              /* console.log('[ModelAlignmentReport] Processing model:', 
+              console.log('[ModelAlignmentReport] Processing model:', 
                 {
                   id: model.id,
                   name: model.name,
                   logoFromApi: model.logo
                 }
-              ); */
+              );
               // --- DEBUG LOGGING END ---
+              
+              // Try multiple strategies to match the model ID with our visual mappings
               const modelIdFromApi = model.id ? model.id.toLowerCase() : "";
-              const visual = modelVisuals[modelIdFromApi] || {
-                logo: model.logo || selfHostedLogo,
-                nameFallback: model.name,
-              };
+              let visual = modelVisuals[modelIdFromApi];
+              
+              // If no exact match, try partial matching
+              if (!visual) {
+                const modelIdKeys = Object.keys(modelVisuals);
+                const partialMatch = modelIdKeys.find(key => 
+                  modelIdFromApi.includes(key) || key.includes(modelIdFromApi)
+                );
+                if (partialMatch) {
+                  visual = modelVisuals[partialMatch];
+                  console.log(`[ModelAlignmentReport] Found partial match for '${modelIdFromApi}': '${partialMatch}'`);
+                }
+              }
+              
+              // Fallback logic
+              if (!visual) {
+                visual = {
+                  logo: model.logo || selfHostedLogo,
+                  nameFallback: model.name,
+                };
+                console.log(`[ModelAlignmentReport] No match found for '${modelIdFromApi}', using fallback`);
+              } else {
+                console.log(`[ModelAlignmentReport] Using visual for '${modelIdFromApi}':`, visual);
+              }
 
               return (
                 <Card key={model.id} className="overflow-hidden">
@@ -277,6 +387,11 @@ const ModelAlignmentReport = () => {
                           src={visual.logo}
                           alt={`${model.name || visual.nameFallback} logo`}
                           className="h-8 w-8 object-contain"
+                          onError={(e) => {
+                            console.error(`[ModelAlignmentReport] Failed to load logo for ${model.name}:`, visual.logo);
+                            // Fallback to a placeholder or default logo
+                            (e.target as HTMLImageElement).src = selfHostedLogo;
+                          }}
                         />
                       </div>
                       <CardTitle className="text-2xl">
@@ -341,8 +456,45 @@ const ModelAlignmentReport = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">
-            Understanding the Indicators
+            Philosophical Alignment
           </CardTitle>
+          <CardDescription>
+            {datasetType === "full" 
+              ? "Analysis of ethical frameworks employed by different AI providers across all models." 
+              : "Philosophical tendencies of the most recent and advanced models from each provider."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Object.entries(datasetType === "full" ? philosophicalAlignmentData.providers : philosophicalAlignmentData.recentModels).map(([key, data]) => (
+              <div key={key} className="border border-border rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center">
+                    <img
+                      src={data.logo}
+                      alt={`${data.name} logo`}
+                      className="h-6 w-6 object-contain"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">{data.name}</span>
+                      <span className="text-sm font-medium text-white">{data.alignment}</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {data.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Understanding the Indicators</CardTitle>
           <CardDescription>
             Descriptions of what each measured bias indicator means and how to
             interpret the scores.
