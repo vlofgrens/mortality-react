@@ -351,6 +351,40 @@ const HumanConfig = React.memo(
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <Label className="mb-1.5 block">
+                Nationality
+                <span
+                  className="ml-1 inline-block cursor-help text-gray-100"
+                  onMouseEnter={() => setShowTooltip(`nationality-${index}`)}
+                  onMouseLeave={() => setShowTooltip(null)}
+                >
+                  <HelpCircle size={14} />
+                  {showTooltip === `nationality-${index}` && (
+                    <div className="absolute z-50 p-3 bg-black text-white text-sm rounded shadow-lg max-w-sm">
+                      The nationality or regional origin of the human.
+                    </div>
+                  )}
+                </span>
+              </Label>
+              <Select
+                value={human.nationality || "undefined"}
+                onValueChange={(value) => updateHuman(index, "nationality", value === "undefined" ? undefined : value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select nationality" />
+                </SelectTrigger>
+                <SelectContent>
+                  {nationalityOptions.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div></div>
+          </div>
+
           <div>
             <Label className="mb-1.5 block">
               Additional Details
