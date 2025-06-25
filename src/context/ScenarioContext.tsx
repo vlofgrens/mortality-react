@@ -1,13 +1,17 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { Scenario, ScenarioResult } from "../types";
+import { apiService } from "../services/api";
 
 interface ScenarioContextType {
   scenarios: Scenario[];
   results: ScenarioResult[];
-  addScenario: (scenario: Scenario) => void;
-  addResult: (result: ScenarioResult) => void;
+  loading: boolean;
+  error: string | null;
+  addScenario: (scenario: Scenario) => Promise<void>;
+  addResult: (result: ScenarioResult) => Promise<void>;
   getScenarioById: (id: string) => Scenario | undefined;
   getResultById: (id: string) => ScenarioResult | undefined;
+  refreshData: () => Promise<void>;
 }
 
 const ScenarioContext = createContext<ScenarioContextType | undefined>(
@@ -25,30 +29,88 @@ export const useScenario = () => {
 export const ScenarioProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [scenarios, setScenarios] = useState<Scenario[]>(() => {
-    const saved = localStorage.getItem("trolley-scenarios");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [results, setResults] = useState<ScenarioResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [results, setResults] = useState<ScenarioResult[]>(() => {
-    const saved = localStorage.getItem("trolley-results");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const refreshData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [scenariosData, resultsData] = await Promise.all([
+        apiService.getScenarios(),
+        apiService.getScenarioResults()
+      ]);
+      
+      setScenarios(scenariosData);
+      setResults(resultsData);
+      
+      // Update localStorage with fresh data
+      localStorage.setItem("trolley-scenarios", JSON.stringify(scenariosData));
+      localStorage.setItem("trolley-results", JSON.stringify(resultsData));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load data';
+      setError(errorMessage);
+      console.error('Failed to refresh data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  // Load data from localStorage as fallback (for migration)
   useEffect(() => {
-    localStorage.setItem("trolley-scenarios", JSON.stringify(scenarios));
-  }, [scenarios]);
+    const loadInitialData = () => {
+      const savedScenarios = localStorage.getItem("trolley-scenarios");
+      const savedResults = localStorage.getItem("trolley-results");
+      
+      if (savedScenarios) {
+        setScenarios(JSON.parse(savedScenarios));
+      }
+      if (savedResults) {
+        setResults(JSON.parse(savedResults));
+      }
+    };
+    
+    loadInitialData();
+    refreshData(); // Also load from API
+  }, [refreshData]);
 
-  useEffect(() => {
-    localStorage.setItem("trolley-results", JSON.stringify(results));
-  }, [results]);
-
-  const addScenario = (scenario: Scenario) => {
-    setScenarios((prev) => [...prev, scenario]);
+  const addScenario = async (scenario: Scenario) => {
+    try {
+      setError(null);
+      await apiService.saveScenario(scenario);
+      setScenarios((prev) => [...prev, scenario]);
+      // Also update localStorage
+      const updatedScenarios = [...scenarios, scenario];
+      localStorage.setItem("trolley-scenarios", JSON.stringify(updatedScenarios));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save scenario';
+      setError(errorMessage);
+      // Fall back to localStorage only
+      setScenarios((prev) => [...prev, scenario]);
+      localStorage.setItem("trolley-scenarios", JSON.stringify([...scenarios, scenario]));
+      throw err;
+    }
   };
 
-  const addResult = (result: ScenarioResult) => {
-    setResults((prev) => [...prev, result]);
+  const addResult = async (result: ScenarioResult) => {
+    try {
+      setError(null);
+      await apiService.saveScenarioResult(result);
+      setResults((prev) => [...prev, result]);
+      // Also update localStorage
+      const updatedResults = [...results, result];
+      localStorage.setItem("trolley-results", JSON.stringify(updatedResults));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save result';
+      setError(errorMessage);
+      // Fall back to localStorage only
+      setResults((prev) => [...prev, result]);
+      localStorage.setItem("trolley-results", JSON.stringify([...results, result]));
+      throw err;
+    }
   };
 
   const getScenarioById = (id: string) => {
@@ -64,10 +126,13 @@ export const ScenarioProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         scenarios,
         results,
+        loading,
+        error,
         addScenario,
         addResult,
         getScenarioById,
         getResultById,
+        refreshData,
       }}
     >
       {children}
