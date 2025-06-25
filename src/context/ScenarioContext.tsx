@@ -96,19 +96,25 @@ export const ScenarioProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const addResult = async (result: ScenarioResult) => {
+    console.log("🔥 DEBUG: addResult called with:", result);
     try {
       setError(null);
+      console.log("🔥 DEBUG: About to call apiService.saveScenarioResult");
       await apiService.saveScenarioResult(result);
+      console.log("✅ DEBUG: API call successful, updating local state");
       setResults((prev) => [...prev, result]);
       // Also update localStorage
       const updatedResults = [...results, result];
       localStorage.setItem("trolley-results", JSON.stringify(updatedResults));
+      console.log("✅ DEBUG: Result saved successfully to both API and localStorage");
     } catch (err) {
+      console.error("❌ DEBUG: Error in addResult:", err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to save result';
       setError(errorMessage);
       // Fall back to localStorage only
       setResults((prev) => [...prev, result]);
       localStorage.setItem("trolley-results", JSON.stringify([...results, result]));
+      console.log("⚠️ DEBUG: Falling back to localStorage only");
       throw err;
     }
   };

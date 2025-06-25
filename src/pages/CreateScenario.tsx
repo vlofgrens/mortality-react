@@ -1313,9 +1313,26 @@ const CreateScenario = () => {
       setIsSubmitting(false); return;
     }
 
-    addScenario(currentScenarioData);
+    console.log("🔥 DEBUG: About to save scenario first");
+    await addScenario(currentScenarioData);
+    console.log("✅ DEBUG: Scenario saved, now saving result");
+    
     const resultPayload: ScenarioResult = { id: uuidv4(), scenarioId: scenarioIdGlobal, responses: allAiResponses };
-    addResult(resultPayload);
+    
+    console.log("🔥 DEBUG: About to save result:", resultPayload);
+    console.log("🔥 DEBUG: Result payload structure:", {
+      id: resultPayload.id,
+      scenarioId: resultPayload.scenarioId,
+      responsesCount: resultPayload.responses.length,
+      responses: resultPayload.responses.map(r => ({ modelId: r.modelId, decision: r.decision }))
+    });
+    
+    try {
+      await addResult(resultPayload);
+      console.log("✅ DEBUG: Result saved successfully");
+    } catch (error) {
+      console.error("❌ DEBUG: Failed to save result:", error);
+    }
 
     if (allProcessedSuccessfully) toast.success("AI Analysis Complete!", { id: analysisToastId, description: "View results on next page." });
     else toast.warning("AI Analysis completed with some errors.", { id: analysisToastId, description: "Some models may not have results." });

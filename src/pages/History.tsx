@@ -58,9 +58,18 @@ const History = () => {
   };
 
   // Sort scenarios by creation date (newest first)
-  const sortedScenarios = [...scenarios].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-  );
+  const sortedScenarios = [...scenarios].sort((a, b) => {
+    const dateA = new Date(a.timestamp);
+    const dateB = new Date(b.timestamp);
+    
+    // Handle invalid dates by putting them at the end
+    if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+    if (isNaN(dateA.getTime())) return 1;
+    if (isNaN(dateB.getTime())) return -1;
+    
+    // Sort newest first (descending order)
+    return dateB.getTime() - dateA.getTime();
+  });
 
   // Display message if no scenarios
   if (sortedScenarios.length === 0) {
@@ -85,17 +94,28 @@ const History = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Experiment History</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Experiment History</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            {sortedScenarios.length} scenario{sortedScenarios.length !== 1 ? 's' : ''} • Newest first
+          </p>
+        </div>
         <Button onClick={() => navigate("/create-scenario")}>
           Create New Scenario
         </Button>
       </div>
 
       <div className="space-y-6">
-        {sortedScenarios.map((scenario) => {
+        {sortedScenarios.map((scenario, index) => {
           const humanCount = scenario.humans.length;
           const animalCount = scenario.animals.length;
           const humanTooltip = getHumanCharacteristicsTooltip(scenario.humans);
+          
+          // Check if this is a recent scenario (created within last 24 hours)
+          const scenarioDate = new Date(scenario.timestamp);
+          const now = new Date();
+          const hoursDiff = (now.getTime() - scenarioDate.getTime()) / (1000 * 60 * 60);
+          const isRecent = hoursDiff < 24;
 
           // Get unique animal species
           const animalSpecies = Array.from(
@@ -116,13 +136,20 @@ const History = () => {
             <Card key={scenario.id} className="scenario-card">
               <CardHeader>
                 <div className="flex justify-between">
-                  <div>
-                    <CardTitle className="text-xl">
-                      {`Scenario: ${humanCount} Human${humanCount !== 1 ? "s" : ""}${animalDisplayString}`}
-                    </CardTitle>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-xl">
+                        {`Scenario: ${humanCount} Human${humanCount !== 1 ? "s" : ""}${animalDisplayString}`}
+                      </CardTitle>
+                      {isRecent && (
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                          Recent
+                        </span>
+                      )}
+                    </div>
                     <CardDescription className="flex items-center mt-1">
                       <Clock size={14} className="mr-1" />
-                      {format(new Date(scenario.timestamp), "MMM dd, yyyy")}
+                      {format(new Date(scenario.timestamp), "MMM dd, yyyy 'at' h:mm a")}
                     </CardDescription>
                   </div>
                 </div>

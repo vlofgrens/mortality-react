@@ -2,7 +2,7 @@ import { Scenario, ScenarioResult } from '../types';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? '/api'  // In production, Flask serves the React app
-  : 'http://localhost:5000/api';  // In development, separate servers
+  : 'https://mortality-flask.onrender.com/api';  // Point to your deployed backend
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
